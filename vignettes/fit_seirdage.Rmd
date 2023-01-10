@@ -1,0 +1,617 @@
+---
+title: "Fit stochastic age-structured SEIR model with death"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{fit_seirdage}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5
+)
+```
+
+```{r setup}
+library(seir)
+```
+
+```{r}
+# Get age-structured contact matrix
+data(polymod, package = "socialmixr")
+
+age.limits <- seq(0,70,10)
+contact <- socialmixr::contact_matrix(survey = polymod,countries = "United Kingdom",age.limits = age.limits,symmetric = T)
+
+# Transform the matrix to the (symmetrical) transmission matrix
+# rather than the contact matrix. This transmission matrix is
+# weighted by the population in each age band.
+transmission <- contact$matrix/rep(contact$demography$population, each = ncol(contact$matrix))
+# for (i in 1:nrow(transmission)){
+#   transmission[i,i] <- transmission[2,2]  
+# }
+transmission
+```
+
+```{r}
+# Get death probability
+IFR <- data.table::fread(system.file("extdata", "ifr_odriscoll.csv", package = "seir"))
+get_min_age = function(x) as.numeric(sub("-.*","",sub("\\+|<","-",x)))
+IFR[,age_low:=get_min_age(IFR$Age_group)]
+IFR[,age_group:=cut(age_low,c(age.limits,Inf),labels=sub(",","-",gsub("\\[|)","",contact$demography$age.group)),right=F)]
+agg_IFR <- IFR[,lapply(.SD,mean),.SDcols=setdiff(names(IFR),c("Age_group","age_low","age_group")),by=.(age_group)]
+p_death <- agg_IFR[,Median_perc_mean/100]
+
+# Generate model
+N_age <- length(age.limits)
+dt <- 0.25
+S_ini <- contact$demography$population
+E_ini <- c(0,0,0,0,0,0,0,0)
+I_ini <- c(0,10,0,0,0,0,0,0)
+seird_age_model <- seirdage$new(
+    list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
+         beta = 0.03,sigma = 0.5,gamma = 0.1,
+         m = transmission,p_death = p_death,N_age = N_age),
+    step = 0,n_particles = 1,n_threads = 1,seed = 1)
+
+# Run epidemic forward
+n_steps <- 1000
+
+# Create data to be fitted to
+# Create an array to contain outputs after looping the model.
+# Array contains XX rows = Total S, E, I, R (4), and
+# in each age compartment (XX) as well as the cumulative incidence (XX)
+x <- array(NA, dim = c(seird_age_model$info()$len, 1, n_steps+1))
+
+# For loop to run the model iteratively
+x[ , ,1] <- seird_age_model$state()
+for (t in seq_len(n_steps)) {
+    x[ , ,t+1] <- seird_age_model$run(t)
+}
+time <- x[1,1,-1]
+
+# Drop time row
+x <- x[-1, , ,drop=FALSE]
+
+# Plot trajectories
+par(mfrow = c(2,4), oma=c(2,3,0,0))
+for (i in 1:N_age) {
+    par(mar = c(3, 4, 2, 0.5))
+    cols <- c(S = "#8c8cd9", E = "#ffff00", I = "#cc0044", R = "#999966", D = "#000000")
+    matplot(time, x[i + 20, ,-1], type = "l", # Offset to access numbers in age compartment
+            xlab = "", ylab = "", yaxt="none", main = paste0("Age ", contact$demography$age.group[i]),
+            col = cols[["S"]], lty = 1, ylim=range(x[-1:-4,,]))
+    matlines(time, x[i + 20 + N_age, ,-1], col = cols[["E"]], lty = 1)
+    matlines(time, x[i + 20 + 2*N_age, ,-1], col = cols[["I"]], lty = 1)
+    matlines(time, x[i + 20 + 3*N_age, ,-1], col = cols[["R"]], lty = 1)
+    matlines(time, x[i + 20 + 4*N_age, ,-1], col = cols[["D"]], lty = 1)
+    legend("right", lwd = 1, col = cols, legend = names(cols), bty = "n")
+    axis(2, las =2)
+}
+mtext("Number of individuals", side=2,line=1, outer=T)
+mtext("Time", side = 1, line = 0, outer =T)
+```
+
+```{r}
+# Extract true history of model states
+true_history <- x[ , ,seq(0,n_steps+1,by=1/dt)+1,drop=F]
+
+# incidence <- -t(diff(t(true_history[7:14,])))
+incidence <- true_history[6, ,-1]
+
+# Add noise
+set.seed(0)
+noise <- round(rnorm(n = length(true_history[6,1,-1]),mean = 0,
+                     sd = 0.2 * true_history[6,1,-1]))
+incidence <- incidence + noise
+incidence <- sapply(incidence,max,0)
+
+# Convert to required format
+data_raw <- data.frame(day = seq(1,n_steps*dt),incidence = incidence)
+data <- mcstate::particle_filter_data(data_raw,"day",1/dt)
+
+plot(data_raw$day,data_raw$incidence,type = "l",xlab = "Day",ylab = "Cases")
+```
+
+```{r}
+# Define comparison function
+compare <- function(state, observed, pars = NULL){
+    if (is.null(pars$exp_noise)) {
+        exp_noise <- 1e6
+    } else {
+        exp_noise <- pars$exp_noise
+    }
+    incidence_modelled <- state[7,]
+    incidence_observed <- observed$incidence
+    lambda <- incidence_modelled + rexp(length(incidence_modelled), exp_noise) # add small amount of noise to prevent 0 expectations
+    dpois(incidence_observed, lambda, log = TRUE) # Poisson log-likelihood
+}
+```
+
+```{r}
+# Create particle filter
+n_particles <- 100
+filter <- mcstate::particle_filter$new(data, seirdage, n_particles, compare)
+filter$run(save_history = TRUE,
+           pars = list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
+                       beta = 0.03,sigma = 0.5,gamma = 0.1,
+                       m = transmission,p_death = p_death,N_age = N_age))
+
+plot_particle_filter <- function(history, true_history, times, obs_end = NULL) {
+    if (is.null(obs_end)) {
+        obs_end = max(times)
+    }
+    
+    par(mar = c(4.1, 5.1, 0.5, 0.5), las = 1)
+    cols <- c(S = "#8c8cd9", E = "#ffff00", I = "#cc0044", R = "#999966", D = "#000000")
+    matplot(times, t(history[2, , -1]), type = "l",
+            xlab = "Time", ylab = "Number of individuals",
+            col = cols[["S"]], lty = 1, ylim = range(history))
+    matlines(times, t(history[3, , -1]), col = cols[["E"]], lty = 1)
+    matlines(times, t(history[4, , -1]), col = cols[["I"]], lty = 1)
+    matlines(times, t(history[5, , -1]), col = cols[["R"]], lty = 1)
+    matlines(times, t(history[6, , -1]), col = cols[["D"]], lty = 1)
+    matpoints(times[1:obs_end], t(true_history[1:5, ,-1]), pch = 19,
+              col = cols)
+    legend("left", lwd = 1, col = cols, legend = names(cols), bty = "n")
+}
+
+plot_incidence <- function(incidence_modelled,incidence_observed,times){
+    matplot(times,t(incidence_modelled[7,,-1]),
+            type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases")
+    points(times,incidence_observed,pch=19)
+}
+
+# Our simulated trajectories, with the "real" data superimposed
+plot_particle_filter(filter$history(), true_history, data_raw$day)
+```
+
+```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(filter$history(),incidence,data_raw$day)
+```
+
+```{r}
+# Check incorrect beta and gamma give worse fit
+filter$run(save_history = TRUE, pars = list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
+                                       beta = 0.4,sigma = 0.5,gamma = 0.2,m = transmission,
+                                       p_death = p_death,N_age = N_age))
+plot_particle_filter(filter$history(), true_history, data_raw$day)
+```
+
+```{r}
+plot_incidence(filter$history(),incidence,data_raw$day)
+```
+
+```{r}
+# Infer parameters by pMCMC
+beta <- mcstate::pmcmc_parameter("beta",0.1,min = 0,
+                        prior = function(x) dgamma(x,shape = 1,scale = 0.1,log = TRUE))
+gamma <- mcstate::pmcmc_parameter("gamma",0.1,min = 0,
+                         prior = function(x) dgamma(x,shape = 1,scale = 0.2,log = TRUE))
+
+make_transform <- function(pars,dt,S_ini,E_ini,I_ini,sigma,m,p_death,N_age){
+    function(pars){
+        beta <- pars[["beta"]]
+        gamma <- pars[["gamma"]]
+        list(beta = beta,gamma = gamma,dt = dt,S_ini = S_ini,E_ini = E_ini,
+                I_ini = I_ini,sigma = sigma,m = m,p_death = p_death,N_age = N_age)
+    }
+}
+
+transform <- make_transform(pars,dt,S_ini,E_ini,I_ini,sigma = 0.5,transmission,p_death,N_age)
+
+# proposal_matrix <- matrix(0.01^2,nrow = 1,ncol = 1)
+proposal_matrix <- matrix(c(0.01^2,0,0,0.01^2),nrow = 2,ncol = 2,byrow = TRUE)
+mcmc_pars <- mcstate::pmcmc_parameters$new(# list(beta = beta),
+                                  list(beta = beta,gamma = gamma),
+                                  proposal_matrix,transform = transform)
+# mcmc_pars$fix(list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
+#                    sigma = 0.5,m = transmission,p_death = p_death,N_age = N_age))
+```
+
+```{r}
+# Run MCMC
+control <- mcstate::pmcmc_control(
+    1000,
+    save_state = TRUE,
+    save_trajectories = TRUE,
+    progress = TRUE)
+pmcmc_run <- mcstate::pmcmc(mcmc_pars, filter, control = control)
+
+# Plot sampled trajectories
+plot_particle_filter(pmcmc_run$trajectories$state[,101:1000,], true_history, data_raw$day)
+```
+
+```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(pmcmc_run$trajectories$state[,101:1000,],incidence,data_raw$day)
+```
+
+```{r, fig.height = 10}
+# Plot MCMC output
+mcmc_out <- coda::as.mcmc(cbind(pmcmc_run$probabilities, pmcmc_run$pars))
+summary(mcmc_out)
+plot(mcmc_out)
+```
+
+```{r}
+# Calculate effective sample size
+coda::effectiveSize(mcmc_out)
+1 - coda::rejectionRate(mcmc_out)
+```
+
+```{r}
+# # Tune pMCMC
+# Start from last sample of first chain
+# beta <- mcstate::pmcmc_parameter("beta",pmcmc_run$pars[nrow(pmcmc_run$pars),"beta"],
+#                         min = 0,prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
+# gamma <- mcstate::pmcmc_parameter("gamma",pmcmc_run$pars[nrow(pmcmc_run$pars),"gamma"],
+#                         min = 0,prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
+# # This doesn't seem to work, chain stays stuck at posterior mode
+proposal_matrix1 <- cov(pmcmc_run$pars) # use empirical covariance matrix from first run
+mcmc_pars1 <- mcstate::pmcmc_parameters$new(#list(beta = beta),
+                                   list(beta = beta,gamma = gamma),
+                                   proposal_matrix1,transform = transform)
+
+# Run 4 chains with this proposal matrix
+control1 <- mcstate::pmcmc_control(
+    1000,
+    save_state = TRUE,
+    save_trajectories = TRUE,
+    progress = TRUE,
+    n_chains = 1
+)
+pmcmc_run1 <- mcstate::pmcmc(mcmc_pars1,filter,control = control1)
+```
+
+```{r}
+# Plot sampled trajectories
+plot_particle_filter(pmcmc_run1$trajectories$state[,101:1000,], true_history, data_raw$day)
+```
+
+```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(pmcmc_run1$trajectories$state[,101:1000,],incidence,data_raw$day)
+```
+
+```{r, fig.height = 10}
+# Plot MCMC output
+mcmc_out1 <- coda::as.mcmc(cbind(pmcmc_run1$probabilities, pmcmc_run1$pars))
+summary(mcmc_out1)
+plot(mcmc_out1)
+```
+
+```{r}
+# Calculate effective sample size
+coda::effectiveSize(mcmc_out1)
+1 - coda::rejectionRate(mcmc_out1)
+```
+
+
+<!-- #### Fit to multiple data streams -->
+<!-- # Add deaths to data -->
+<!-- deaths <- true_history[7, ,-1] -->
+
+<!-- # Add noise -->
+<!-- set.seed(1) -->
+<!-- noise <- round(rnorm(n = length(true_history[7,1,-1]),mean = 0, -->
+<!--                      sd = 0.3 * true_history[7,1,-1])) -->
+<!-- deaths <- deaths + noise -->
+<!-- deaths <- sapply(deaths,max,0) -->
+
+<!-- data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence,deaths = deaths) -->
+<!-- data <- particle_filter_data(data_raw,"day",1/dt) -->
+
+<!-- # Plot data -->
+<!-- plot(data_raw$day,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases") -->
+<!-- plot(data_raw$day,data_raw$deaths,type = "l",xlab = "Day",ylab = "Deaths") -->
+
+<!-- index <- function(info){ -->
+<!--     list(run = c(cases = info$index$I_inc, -->
+<!--                  deaths = info$index$D_inc), -->
+<!--          state = c(S_tot = info$index$S_tot, -->
+<!--                    E_tot = info$index$E_tot, -->
+<!--                    I_tot = info$index$I_tot, -->
+<!--                    R_tot = info$index$R_tot, -->
+<!--                    D_tot = info$index$D_tot, -->
+<!--                    cases = info$index$I_inc, -->
+<!--                    deaths = info$index$D_inc)) -->
+<!-- } -->
+
+<!-- index(seird_age_model$info()) -->
+
+<!-- # log-likelihood of Poisson count -->
+<!-- ll_pois <- function(obs, model) { -->
+<!--     exp_noise <- 1e6 -->
+<!--     if (is.na(obs)) { -->
+<!--         # Creates vector of zeros in ll with same length, if no data -->
+<!--         ll_obs <- numeric(length(model)) -->
+<!--     } else { -->
+<!--         lambda <- model + -->
+<!--             rexp(n = length(model), rate = exp_noise) -->
+<!--         ll_obs <- dpois(x = obs, lambda = lambda, log = TRUE) -->
+<!--     } -->
+<!--     ll_obs -->
+<!-- } -->
+
+<!-- # Sum log likelihoods from each data stream -->
+<!-- compare_combined <- function(state, observed, pars = NULL) { -->
+<!--     ll_cases <- ll_pois(observed$cases, state["cases",]) -->
+<!--     ll_deaths <- ll_pois(observed$deaths, state["deaths",]) -->
+<!--     ll_cases + ll_deaths -->
+<!-- } -->
+
+<!-- filter <- particle_filter$new(data, seirdage, n_particles,  -->
+<!--                               compare_combined, index, seed = 1) -->
+<!-- filter$run(save_history = TRUE, -->
+<!--            pars = list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini, -->
+<!--                        beta = 0.03,sigma = 0.5,gamma = 0.1, -->
+<!--                        m = transmission,p_death = p_death,N_age = N_age)) -->
+
+<!-- # Check variable names in particle filter history -->
+<!-- dimnames(filter$history()) -->
+
+<!-- plot_particle_filter_combined <- function(history, true_history, times, obs_end = NULL) { -->
+<!--     if (is.null(obs_end)) { -->
+<!--         obs_end = max(times) -->
+<!--     } -->
+
+<!--     par(mar = c(4.1, 5.1, 0.5, 0.5), las = 1) -->
+<!--     cols <- c(S = "#8c8cd9", E = "#ffff00", I = "#cc0044", R = "#999966", D = "#000000") -->
+<!--     matplot(times, t(history[1, , -1]), type = "l", -->
+<!--             xlab = "Time", ylab = "Number of individuals", -->
+<!--             col = cols[["S"]], lty = 1, ylim = range(history)) -->
+<!--     matlines(times, t(history[2, , -1]), col = cols[["E"]], lty = 1) -->
+<!--     matlines(times, t(history[3, , -1]), col = cols[["I"]], lty = 1) -->
+<!--     matlines(times, t(history[4, , -1]), col = cols[["R"]], lty = 1) -->
+<!--     matlines(times, t(history[5, , -1]), col = cols[["D"]], lty = 1) -->
+<!--     matpoints(times[1:obs_end], t(true_history[1:5, ,-1]), pch = 19, -->
+<!--               col = cols) -->
+<!--     legend("left", lwd = 1, col = cols, legend = names(cols), bty = "n") -->
+<!-- } -->
+
+<!-- plot_cases_and_deaths <- function(incidence_modelled, incidence_observed, times){ -->
+<!--     matplot(times,t(incidence_modelled[6, ,-1]), -->
+<!--             type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     points(times,incidence_observed$cases,pch=19) -->
+<!--     matplot(times,t(incidence_modelled[7, ,-1]), -->
+<!--             type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     points(times,incidence_observed$deaths,pch=19) -->
+<!-- } -->
+
+<!-- plot_particle_filter_combined(filter$history(),true_history,data_raw$day) -->
+<!-- plot_cases_and_deaths(filter$history(),data,data_raw$day) -->
+
+<!-- # proposal_matrix2 <- matrix(c(1e-5,1e-5,1e-5,1e-5),nrow = 2,ncol = 2,byrow = TRUE) -->
+<!-- # mcmc_pars2 <- pmcmc_parameters$new(#list(beta = beta), -->
+<!-- #     list(beta = beta,gamma = gamma), -->
+<!-- #     proposal_matrix2,transform = transform)  -->
+
+<!-- # Run MCMC -->
+<!-- pmcmc_run2 <- pmcmc(mcmc_pars1,filter,control = control1) -->
+
+<!-- # Plot sampled trajectories -->
+<!-- plot_particle_filter_combined(pmcmc_run2$trajectories$state[,101:501,], true_history, data_raw$day) -->
+<!-- plot_cases_and_deaths(pmcmc_run2$trajectories$state[,101:501,],data,data_raw$day) -->
+
+<!-- # Plot MCMC output -->
+<!-- mcmc_out2 <- as.mcmc(cbind(pmcmc_run2$probabilities, pmcmc_run2$pars)) -->
+<!-- summary(mcmc_out2) -->
+<!-- plot(mcmc_out2) -->
+
+<!-- # Check correlation between beta and gamma -->
+<!-- par(mfrow = c(1,1)) -->
+<!-- plot(pmcmc_run2$pars[,1],pmcmc_run2$pars[,2]) -->
+<!-- plot(pmcmc_run2$pars[100:501,1],pmcmc_run2$pars[100:501,2]) -->
+<!-- hist(pmcmc_run2$pars[,1]/pmcmc_run2$pars[,2]) -->
+
+
+
+<!-- #### Fit to multiple age-stratified data streams -->
+<!-- index_age_stratified <- function(info){ -->
+<!--     index <- info$index -->
+
+<!--     index_run <- c(cases = index[["I_inc"]], -->
+<!--                    cases_0_9 = index[["I_inc_0_9"]], -->
+<!--                    cases_10_19 = index[["I_inc_10_19"]], -->
+<!--                    cases_20_29 = index[["I_inc_20_29"]], -->
+<!--                    cases_30_39 = index[["I_inc_30_39"]], -->
+<!--                    cases_40_49 = index[["I_inc_40_49"]], -->
+<!--                    cases_50_59 = index[["I_inc_50_59"]], -->
+<!--                    cases_60_69 = index[["I_inc_60_69"]], -->
+<!--                    cases_70_plus = index[["I_inc_70_plus"]], -->
+<!--                    # cases_70_79 = index[["I_inc_70_79"]], -->
+<!--                    # cases_80_plus = index[["I_inc_80_plus"]], -->
+<!--                    deaths = index[["D_inc"]], -->
+<!--                    deaths_0_39 = index[["D_inc_0_39"]], -->
+<!--                    deaths_40_49 = index[["D_inc_40_49"]], -->
+<!--                    deaths_50_59 = index[["D_inc_50_59"]], -->
+<!--                    deaths_60_69 = index[["D_inc_60_69"]], -->
+<!--                    deaths_70_plus = index[["D_inc_70_plus"]] -->
+<!--                    # deaths_70_79 = index[["D_inc_70_79"]], -->
+<!--                    # deaths_80_plus = index[["D_inc_80_plus"]] -->
+<!--     ) -->
+
+<!--     list(run = index_run, -->
+<!--          state = c(S = index[["S"]], -->
+<!--                    E = index[["E"]], -->
+<!--                    I = index[["I"]], -->
+<!--                    R = index[["R"]], -->
+<!--                    D = index[["D"]], -->
+<!--                    index_run)) -->
+<!-- } -->
+
+<!-- index_age_stratified(seird_age_model$info()) -->
+
+<!-- # Define negative binomial log-likelihood -->
+<!-- ll_nbinom <- function(data, model, kappa, exp_noise){ -->
+<!--     if(is.na(data)) { -->
+<!--         return(numeric(length(model))) -->
+<!--     } -->
+<!--     mu <- model + rexp(length(model),rate = exp_noise) -->
+<!--     dnbinom(data, kappa, mu = mu, log = TRUE) -->
+<!-- } -->
+
+<!-- # Define comparison function for age-stratified data -->
+<!-- compare_age_stratified <- function(state, observed, pars = NULL){ -->
+<!--     if (is.null(pars$kappa_case)){ -->
+<!--         kappa_case <- 2 -->
+<!--     } else { -->
+<!--         kappa_case <- pars$kappa_case -->
+<!--     } -->
+<!--     if (is.null(pars$kappa_death)){ -->
+<!--         kappa_death <- 2 -->
+<!--     } else { -->
+<!--         kappa_death <- pars$kappa_death -->
+<!--     } -->
+<!--     if (is.null(pars$exp_noise)){ -->
+<!--         exp_noise <- 1e6 -->
+<!--     } else { -->
+<!--         exp_noise <- pars$exp_noise -->
+<!--     } -->
+
+<!--     model_cases <- state["cases", ] # for locations without age-stratified data -->
+<!--     model_cases_0_9 <- state["cases_0_9", ] -->
+<!--     model_cases_10_19 <- state["cases_10_19", ] -->
+<!--     model_cases_20_29 <- state["cases_20_29", ] -->
+<!--     model_cases_30_39 <- state["cases_30_39", ] -->
+<!--     model_cases_40_49 <- state["cases_40_49", ] -->
+<!--     model_cases_50_59 <- state["cases_50_59", ] -->
+<!--     model_cases_60_69 <- state["cases_60_69", ] -->
+<!--     model_cases_70_plus <- state["cases_70_plus", ] -->
+<!--     # model_cases_70_79 <- state["cases_70_79", ] -->
+<!--     # model_cases_80_plus <- state["cases_80_plus", ] -->
+<!--     model_deaths <- state["deaths", ] # for locations without age-stratified data -->
+<!--     model_deaths_0_39 <- state["deaths_0_39", ] -->
+<!--     model_deaths_40_49 <- state["deaths_40_49", ] -->
+<!--     model_deaths_50_59 <- state["deaths_50_59", ] -->
+<!--     model_deaths_60_69 <- state["deaths_60_69", ] -->
+<!--     model_deaths_70_plus <- state["deaths_70_plus", ] -->
+<!--     # model_deaths_70_79 <- state["deaths_70_79", ] -->
+<!--     # model_deaths_80_plus <- state["deaths_80_plus", ] -->
+
+<!--     # Log-likelihoods for deaths -->
+<!--     ll_cases <- ll_nbinom(observed$cases,model_cases,kappa_case,exp_noise) -->
+<!--     ll_cases_0_9 <- ll_nbinom(observed$cases_0_9,model_cases_0_9,kappa_case,exp_noise) -->
+<!--     ll_cases_10_19 <- ll_nbinom(observed$cases_10_19,model_cases_10_19,kappa_case,exp_noise) -->
+<!--     ll_cases_20_29 <- ll_nbinom(observed$cases_20_29,model_cases_20_29,kappa_case,exp_noise) -->
+<!--     ll_cases_30_39 <- ll_nbinom(observed$cases_30_39,model_cases_30_39,kappa_case,exp_noise) -->
+<!--     ll_cases_40_49 <- ll_nbinom(observed$cases_40_49,model_cases_40_49,kappa_case,exp_noise) -->
+<!--     ll_cases_50_59 <- ll_nbinom(observed$cases_50_59,model_cases_50_59,kappa_case,exp_noise) -->
+<!--     ll_cases_60_69 <- ll_nbinom(observed$cases_60_69,model_cases_60_69,kappa_case,exp_noise) -->
+<!--     ll_cases_70_plus <- ll_nbinom(observed$cases_70_plus,model_cases_70_plus,kappa_case,exp_noise) -->
+<!--     # ll_cases_70_79 <- ll_nbinom(observed$cases_70_79,model_cases_70_79,kappa_case,exp_noise) -->
+<!--     # ll_cases_80_plus <- ll_nbinom(observed$cases_80_plus,model_cases_80_plus,kappa_case,exp_noise) -->
+
+<!--     # Log-likelihoods for deaths -->
+<!--     ll_deaths <- ll_nbinom(observed$deaths,model_deaths,kappa_death,exp_noise) -->
+<!--     ll_deaths_0_39 <- ll_nbinom(observed$deaths_0_39,model_deaths_0_39,kappa_death,exp_noise) -->
+<!--     ll_deaths_40_49 <- ll_nbinom(observed$deaths_40_49,model_deaths_40_49,kappa_death,exp_noise) -->
+<!--     ll_deaths_50_59 <- ll_nbinom(observed$deaths_50_59,model_deaths_50_59,kappa_death,exp_noise) -->
+<!--     ll_deaths_60_69 <- ll_nbinom(observed$deaths_60_69,model_deaths_60_69,kappa_death,exp_noise) -->
+<!--     ll_deaths_70_plus <- ll_nbinom(observed$deaths_70_plus,model_deaths_70_plus,kappa_death,exp_noise) -->
+<!--     # ll_deaths_70_79 <- ll_nbinom(observed$deaths_70_79,model_deaths_70_79,kappa_death,exp_noise) -->
+<!--     # ll_deaths_80_plus <- ll_nbinom(observed$deaths_80_plus,model_deaths_80_plus,kappa_death,exp_noise) -->
+
+<!--     # Calculate total log-likelihood -->
+<!--     ll_cases + ll_cases_0_9 + ll_cases_10_19 + ll_cases_20_29 +ll_cases_30_39 + ll_cases_40_49 + ll_cases_50_59 + ll_cases_60_69 + ll_cases_70_plus + #ll_cases_70_79 + ll_cases_80_plus + -->
+<!--         ll_deaths + ll_deaths_0_39 + ll_deaths_40_49 + ll_deaths_50_59 + ll_deaths_60_69 + ll_deaths_70_plus #+ ll_deaths_70_79 + ll_deaths_80_plus -->
+<!-- } -->
+
+<!-- # Add noise to simulated data -->
+<!-- cases_age <- true_history[8:15, ,-1] -->
+<!-- deaths_age <- true_history[16:20, ,-1] -->
+
+<!-- add_noise <- function(x,f){ -->
+<!--     noise <- apply(x,2,function(y) round(rnorm(length(y),0,f*y))) -->
+<!--     x <- x + noise -->
+<!--     x <- pmax(x,0) -->
+<!-- } -->
+
+<!-- par(mfrow = c(1,1)) -->
+<!-- matplot(data_raw$day,t(cases),type="l",xlab="Day",ylab="Cases") -->
+
+<!-- set.seed(2) -->
+<!-- cases_age <- add_noise(cases_age,0.2) -->
+<!-- rownames(cases_age) <- paste0("cases_",age.limits,"_",c(as.character(age.limits[-1]-1),"plus")) -->
+<!-- deaths_age <- add_noise(deaths_age,0.3) -->
+<!-- rownames(deaths_age) <- paste0("deaths_",age.limits[c(1,5:length(age.limits))],"_",c(as.character(age.limits[5:length(age.limits)]-1),"plus")) -->
+
+<!-- matplot(data_raw$day,t(cases_age),type="l",xlab="Day",ylab="Cases") -->
+<!-- matplot(data_raw$day,t(deaths_age),type="l",xlab="Day",ylab="Deaths") -->
+
+<!-- # Create "observed" data -->
+<!-- data_age_raw <- data.frame(t(rbind(cases_age,deaths_age))) -->
+<!-- data_age_raw$day <- seq(1,n_steps*dt) -->
+<!-- # Add empty columns for total cases and deaths -->
+<!-- data_age_raw$cases <- NA -->
+<!-- data_age_raw$deaths <- NA -->
+<!-- # Convert to required format -->
+<!-- data_age <- particle_filter_data(data_age_raw,"day",1/dt) -->
+
+<!-- # Create particle filter object -->
+<!-- filter <- particle_filter$new(data_age, seirdage, n_particles,  -->
+<!--                               compare_age_stratified, index_age_stratified, seed = 1) -->
+
+<!-- # Run MCMC -->
+<!-- pmcmc_run3 <- pmcmc(mcmc_pars1,filter,control = control) -->
+
+<!-- plot_cases_and_deaths_age <- function(incidence_modelled, incidence_observed, times){ -->
+<!--     par(mfrow = c(2,4), oma=c(2,3,0,0)) -->
+<!--     for (i in 1:N_age){ -->
+<!--         par(mar = c(3, 4, 2, 0.5)) -->
+<!--         matplot(times, t(incidence_modelled[41+i, ,-1]), -->
+<!--                 type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases", -->
+<!--                 main = paste0("Age ", contact$demography$age.group[i])) -->
+<!--         points(times, incidence_observed[,4+i],pch=19) -->
+<!--         axis(2, las =2)         -->
+<!--     } -->
+<!--     par(mfrow = c(2,4), oma=c(2,3,0,0)) -->
+<!--     for (i in 1:5){ -->
+<!--         par(mar = c(3, 4, 2, 0.5)) -->
+<!--         matplot(times, t(incidence_modelled[50+i, ,-1]), -->
+<!--                 type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Deaths", -->
+<!--                 main = paste0("Age ", rownames(incidence_modelled)[50+i])) -->
+<!--         points(times, incidence_observed[,12+i],pch=19) -->
+<!--         axis(2, las =2) -->
+<!--     } -->
+<!--     # par(mfrow = c(2,4), oma=c(2,3,0,0)) -->
+<!--     # matplot(times,t(incidence_modelled["cases_0_9", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_0_9,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_10_19", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_10_19,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_20_29", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_20_29,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_30_39", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_30_39,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_40_49", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_40_49,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_50_59", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_50_59,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_60_69", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_60_69,pch=19) -->
+<!--     # matplot(times,t(incidence_modelled["cases_70_plus", ,-1]), -->
+<!--     #         type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases") -->
+<!--     # points(times,incidence_observed$cases_70_plus,pch=19) -->
+<!-- } -->
+
+<!-- plot_cases_and_deaths_age(pmcmc_run3$trajectories$state[,101:1001,],data_age,data_age_raw$day) -->
+
+<!-- # Plot MCMC output -->
+<!-- mcmc_out3 <- as.mcmc(cbind(pmcmc_run3$probabilities, pmcmc_run3$pars)) -->
+<!-- summary(mcmc_out3) -->
+<!-- plot(mcmc_out3[101:1001,5]) -->
+<!-- ``` -->
+
