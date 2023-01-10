@@ -2,7 +2,7 @@
 title: "Fit stochastic SIR model"
 output: html_document
 vignette: >
-  %\VignetteIndexEntry{fit_seirdage}
+  %\VignetteIndexEntry{fit_sir}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
