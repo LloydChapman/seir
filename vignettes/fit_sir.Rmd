@@ -29,7 +29,7 @@ I_ini <- 10
 sir_model <- sir$new(
     list(dt = dt,S_ini = S_ini,I_ini = I_ini,
          beta = 0.2,gamma = 0.1),
-    step = 0,n_particles = 1,n_threads = 1,seed = 1)
+    time = 0,n_particles = 1,n_threads = 1,seed = 1)
 
 # Run epidemic forward
 n_steps <- 400
