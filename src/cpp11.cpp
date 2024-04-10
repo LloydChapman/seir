@@ -6,13 +6,6 @@
 #include <R_ext/Visibility.h>
 
 // seir.cpp
-cpp11::sexp dust_seir_capabilities();
-extern "C" SEXP _seir_dust_seir_capabilities() {
-  BEGIN_CPP11
-    return cpp11::as_sexp(dust_seir_capabilities());
-  END_CPP11
-}
-// seir.cpp
 cpp11::sexp dust_seir_gpu_info();
 extern "C" SEXP _seir_dust_seir_gpu_info() {
   BEGIN_CPP11
@@ -20,24 +13,38 @@ extern "C" SEXP _seir_dust_seir_gpu_info() {
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seir_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seir_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seir_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seir_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seir_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seir_capabilities();
+extern "C" SEXP _seir_dust_cpu_seir_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seir_capabilities());
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seir_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seir_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seir_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seir_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seir.cpp
+SEXP dust_cpu_seir_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seir_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seir_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seir.cpp
+SEXP dust_cpu_seir_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seir_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seir_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seir.cpp
@@ -48,10 +55,10 @@ extern "C" SEXP _seir_dust_cpu_seir_set_index(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seir_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seir.cpp
@@ -62,10 +69,10 @@ extern "C" SEXP _seir_dust_cpu_seir_state(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seir.cpp
-size_t dust_cpu_seir_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seir_step(SEXP ptr) {
+SEXP dust_cpu_seir_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seir_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seir_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seir.cpp
@@ -98,10 +105,10 @@ extern "C" SEXP _seir_dust_cpu_seir_set_rng_state(SEXP ptr, SEXP rng_state) {
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seir_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seir_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seir_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seir_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seir.cpp
@@ -112,10 +119,10 @@ extern "C" SEXP _seir_dust_cpu_seir_compare_data(SEXP ptr) {
   END_CPP11
 }
 // seir.cpp
-SEXP dust_cpu_seir_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seir_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seir_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seir_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seir_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seir_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seir.cpp
@@ -133,11 +140,19 @@ extern "C" SEXP _seir_dust_cpu_seir_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seir_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirdage.cpp
-cpp11::sexp dust_seirdage_capabilities();
-extern "C" SEXP _seir_dust_seirdage_capabilities() {
+// seir.cpp
+void dust_cpu_seir_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seir_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirdage_capabilities());
+    dust_cpu_seir_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seir.cpp
+SEXP dust_cpu_seir_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seir_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seir_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirdage.cpp
@@ -148,24 +163,38 @@ extern "C" SEXP _seir_dust_seirdage_gpu_info() {
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirdage_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirdage_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirdage_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirdage_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirdage_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirdage_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirdage_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirdage_capabilities());
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirdage_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirdage_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirdage_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirdage_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirdage.cpp
+SEXP dust_cpu_seirdage_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirdage_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirdage_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirdage.cpp
+SEXP dust_cpu_seirdage_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirdage_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirdage_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirdage.cpp
@@ -176,10 +205,10 @@ extern "C" SEXP _seir_dust_cpu_seirdage_set_index(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirdage_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirdage.cpp
@@ -190,10 +219,10 @@ extern "C" SEXP _seir_dust_cpu_seirdage_state(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirdage.cpp
-size_t dust_cpu_seirdage_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirdage_step(SEXP ptr) {
+SEXP dust_cpu_seirdage_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirdage_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirdage_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirdage.cpp
@@ -226,10 +255,10 @@ extern "C" SEXP _seir_dust_cpu_seirdage_set_rng_state(SEXP ptr, SEXP rng_state) 
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirdage_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirdage_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirdage_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirdage_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirdage.cpp
@@ -240,10 +269,10 @@ extern "C" SEXP _seir_dust_cpu_seirdage_compare_data(SEXP ptr) {
   END_CPP11
 }
 // seirdage.cpp
-SEXP dust_cpu_seirdage_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirdage_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirdage_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirdage_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirdage_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirdage_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirdage.cpp
@@ -261,11 +290,19 @@ extern "C" SEXP _seir_dust_cpu_seirdage_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seirdage_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirhdage.cpp
-cpp11::sexp dust_seirhdage_capabilities();
-extern "C" SEXP _seir_dust_seirhdage_capabilities() {
+// seirdage.cpp
+void dust_cpu_seirdage_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirdage_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirhdage_capabilities());
+    dust_cpu_seirdage_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirdage.cpp
+SEXP dust_cpu_seirdage_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirdage_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirdage_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -276,24 +313,38 @@ extern "C" SEXP _seir_dust_seirhdage_gpu_info() {
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirhdage_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirhdage_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirhdage_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdage_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirhdage_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirhdage_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_capabilities());
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdage_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirhdage_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdage_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirhdage.cpp
+SEXP dust_cpu_seirhdage_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdage_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdage_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirhdage.cpp
+SEXP dust_cpu_seirhdage_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdage_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdage_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -304,10 +355,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdage_set_index(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirhdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirhdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirhdage_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -318,10 +369,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdage_state(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirhdage.cpp
-size_t dust_cpu_seirhdage_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirhdage_step(SEXP ptr) {
+SEXP dust_cpu_seirhdage_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdage_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -354,10 +405,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdage_set_rng_state(SEXP ptr, SEXP rng_state)
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirhdage_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirhdage_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirhdage_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -368,10 +419,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdage_compare_data(SEXP ptr) {
   END_CPP11
 }
 // seirhdage.cpp
-SEXP dust_cpu_seirhdage_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirhdage_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirhdage_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirhdage_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdage_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirhdage_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirhdage.cpp
@@ -389,11 +440,19 @@ extern "C" SEXP _seir_dust_cpu_seirhdage_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seirhdage_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirhdagevax.cpp
-cpp11::sexp dust_seirhdagevax_capabilities();
-extern "C" SEXP _seir_dust_seirhdagevax_capabilities() {
+// seirhdage.cpp
+void dust_cpu_seirhdage_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirhdage_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirhdagevax_capabilities());
+    dust_cpu_seirhdage_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirhdage.cpp
+SEXP dust_cpu_seirhdage_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdage_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdage_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -404,24 +463,38 @@ extern "C" SEXP _seir_dust_seirhdagevax_gpu_info() {
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirhdagevax_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirhdagevax_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_capabilities());
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirhdagevax_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirhdagevax.cpp
+SEXP dust_cpu_seirhdagevax_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirhdagevax.cpp
+SEXP dust_cpu_seirhdagevax_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -432,10 +505,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevax_set_index(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirhdagevax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -446,10 +519,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevax_state(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // seirhdagevax.cpp
-size_t dust_cpu_seirhdagevax_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_step(SEXP ptr) {
+SEXP dust_cpu_seirhdagevax_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -482,10 +555,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevax_set_rng_state(SEXP ptr, SEXP rng_sta
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirhdagevax_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -496,10 +569,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevax_compare_data(SEXP ptr) {
   END_CPP11
 }
 // seirhdagevax.cpp
-SEXP dust_cpu_seirhdagevax_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirhdagevax_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirhdagevax_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevax_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirhdagevax.cpp
@@ -517,11 +590,19 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevax_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seirhdagevax_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirhdagevaxmultistrain.cpp
-cpp11::sexp dust_seirhdagevaxmultistrain_capabilities();
-extern "C" SEXP _seir_dust_seirhdagevaxmultistrain_capabilities() {
+// seirhdagevax.cpp
+void dust_cpu_seirhdagevax_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirhdagevaxmultistrain_capabilities());
+    dust_cpu_seirhdagevax_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirhdagevax.cpp
+SEXP dust_cpu_seirhdagevax_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevax_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevax_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -532,24 +613,38 @@ extern "C" SEXP _seir_dust_seirhdagevaxmultistrain_gpu_info() {
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirhdagevaxmultistrain_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirhdagevaxmultistrain_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_capabilities());
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirhdagevaxmultistrain_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrain.cpp
+SEXP dust_cpu_seirhdagevaxmultistrain_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrain.cpp
+SEXP dust_cpu_seirhdagevaxmultistrain_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -560,10 +655,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_set_index(SEXP ptr, SEXP 
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirhdagevaxmultistrain_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -574,10 +669,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_state(SEXP ptr, SEXP r_in
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-size_t dust_cpu_seirhdagevaxmultistrain_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_step(SEXP ptr) {
+SEXP dust_cpu_seirhdagevaxmultistrain_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -610,10 +705,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_set_rng_state(SEXP ptr, S
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirhdagevaxmultistrain_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -624,10 +719,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_compare_data(SEXP ptr) {
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
-SEXP dust_cpu_seirhdagevaxmultistrain_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirhdagevaxmultistrain_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirhdagevaxmultistrain.cpp
@@ -645,11 +740,19 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirhdagevaxmultistrainsero.cpp
-cpp11::sexp dust_seirhdagevaxmultistrainsero_capabilities();
-extern "C" SEXP _seir_dust_seirhdagevaxmultistrainsero_capabilities() {
+// seirhdagevaxmultistrain.cpp
+void dust_cpu_seirhdagevaxmultistrain_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirhdagevaxmultistrainsero_capabilities());
+    dust_cpu_seirhdagevaxmultistrain_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirhdagevaxmultistrain.cpp
+SEXP dust_cpu_seirhdagevaxmultistrain_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrain_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrain_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -660,24 +763,38 @@ extern "C" SEXP _seir_dust_seirhdagevaxmultistrainsero_gpu_info() {
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirhdagevaxmultistrainsero_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_capabilities());
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrainsero.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainsero_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrainsero.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainsero_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -688,10 +805,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_set_index(SEXP ptr, S
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -702,10 +819,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_state(SEXP ptr, SEXP 
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-size_t dust_cpu_seirhdagevaxmultistrainsero_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_step(SEXP ptr) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -738,10 +855,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_set_rng_state(SEXP pt
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -752,10 +869,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_compare_data(SEXP ptr
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainsero_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirhdagevaxmultistrainsero_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirhdagevaxmultistrainsero.cpp
@@ -773,11 +890,19 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// seirhdagevaxmultistrainserotimedepbeta.cpp
-cpp11::sexp dust_seirhdagevaxmultistrainserotimedepbeta_capabilities();
-extern "C" SEXP _seir_dust_seirhdagevaxmultistrainserotimedepbeta_capabilities() {
+// seirhdagevaxmultistrainsero.cpp
+void dust_cpu_seirhdagevaxmultistrainsero_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_seirhdagevaxmultistrainserotimedepbeta_capabilities());
+    dust_cpu_seirhdagevaxmultistrainsero_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirhdagevaxmultistrainsero.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainsero_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainsero_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainsero_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -788,24 +913,38 @@ extern "C" SEXP _seir_dust_seirhdagevaxmultistrainserotimedepbeta_gpu_info() {
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_seirhdagevaxmultistrainserotimedepbeta_capabilities();
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_capabilities());
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrainserotimedepbeta.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// seirhdagevaxmultistrainserotimedepbeta.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -816,10 +955,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_index(
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -830,10 +969,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_state(SEXP
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-size_t dust_cpu_seirhdagevaxmultistrainserotimedepbeta_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_step(SEXP ptr) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -866,10 +1005,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_rng_st
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -880,10 +1019,10 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_compare_da
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
-SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // seirhdagevaxmultistrainserotimedepbeta.cpp
@@ -901,11 +1040,19 @@ extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state(SE
     return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
-// sir.cpp
-cpp11::sexp dust_sir_capabilities();
-extern "C" SEXP _seir_dust_sir_capabilities() {
+// seirhdagevaxmultistrainserotimedepbeta.cpp
+void dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_stochastic_schedule(SEXP ptr, SEXP time) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_sir_capabilities());
+    dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// seirhdagevaxmultistrainserotimedepbeta.cpp
+SEXP dust_cpu_seirhdagevaxmultistrainserotimedepbeta_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_seirhdagevaxmultistrainserotimedepbeta_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // sir.cpp
@@ -916,24 +1063,38 @@ extern "C" SEXP _seir_dust_sir_gpu_info() {
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_alloc(cpp11::list r_pars, bool pars_multi, size_t step, cpp11::sexp r_n_particles, size_t n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config);
-extern "C" SEXP _seir_dust_cpu_sir_alloc(SEXP r_pars, SEXP pars_multi, SEXP step, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config) {
+SEXP dust_cpu_sir_alloc(cpp11::list r_pars, bool pars_multi, cpp11::sexp r_time, cpp11::sexp r_n_particles, int n_threads, cpp11::sexp r_seed, bool deterministic, cpp11::sexp gpu_config, cpp11::sexp ode_control);
+extern "C" SEXP _seir_dust_cpu_sir_alloc(SEXP r_pars, SEXP pars_multi, SEXP r_time, SEXP r_n_particles, SEXP n_threads, SEXP r_seed, SEXP deterministic, SEXP gpu_config, SEXP ode_control) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<size_t>>(step), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<size_t>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config)));
+    return cpp11::as_sexp(dust_cpu_sir_alloc(cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(r_pars), cpp11::as_cpp<cpp11::decay_t<bool>>(pars_multi), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_n_particles), cpp11::as_cpp<cpp11::decay_t<int>>(n_threads), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_seed), cpp11::as_cpp<cpp11::decay_t<bool>>(deterministic), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(gpu_config), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(ode_control)));
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_run(SEXP ptr, size_t step_end);
-extern "C" SEXP _seir_dust_cpu_sir_run(SEXP ptr, SEXP step_end) {
+cpp11::sexp dust_cpu_sir_capabilities();
+extern "C" SEXP _seir_dust_cpu_sir_capabilities() {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<size_t>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_sir_capabilities());
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_simulate(SEXP ptr, cpp11::sexp step_end);
-extern "C" SEXP _seir_dust_cpu_sir_simulate(SEXP ptr, SEXP step_end) {
+SEXP dust_cpu_sir_run(SEXP ptr, cpp11::sexp r_time_end);
+extern "C" SEXP _seir_dust_cpu_sir_run(SEXP ptr, SEXP r_time_end) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_end)));
+    return cpp11::as_sexp(dust_cpu_sir_run(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(r_time_end)));
+  END_CPP11
+}
+// sir.cpp
+SEXP dust_cpu_sir_simulate(SEXP ptr, cpp11::sexp time_end);
+extern "C" SEXP _seir_dust_cpu_sir_simulate(SEXP ptr, SEXP time_end) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_sir_simulate(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_end)));
+  END_CPP11
+}
+// sir.cpp
+SEXP dust_cpu_sir_run_adjoint(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_sir_run_adjoint(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_sir_run_adjoint(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // sir.cpp
@@ -944,10 +1105,10 @@ extern "C" SEXP _seir_dust_cpu_sir_set_index(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state);
-extern "C" SEXP _seir_dust_cpu_sir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_step, SEXP r_set_initial_state) {
+SEXP dust_cpu_sir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size);
+extern "C" SEXP _seir_dust_cpu_sir_update_state(SEXP ptr, SEXP r_pars, SEXP r_state, SEXP r_time, SEXP r_set_initial_state, SEXP index, SEXP reset_step_size) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_step), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state)));
+    return cpp11::as_sexp(dust_cpu_sir_update_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_pars), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_time), cpp11::as_cpp<cpp11::decay_t<SEXP>>(r_set_initial_state), cpp11::as_cpp<cpp11::decay_t<SEXP>>(index), cpp11::as_cpp<cpp11::decay_t<SEXP>>(reset_step_size)));
   END_CPP11
 }
 // sir.cpp
@@ -958,10 +1119,10 @@ extern "C" SEXP _seir_dust_cpu_sir_state(SEXP ptr, SEXP r_index) {
   END_CPP11
 }
 // sir.cpp
-size_t dust_cpu_sir_step(SEXP ptr);
-extern "C" SEXP _seir_dust_cpu_sir_step(SEXP ptr) {
+SEXP dust_cpu_sir_time(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_sir_time(SEXP ptr) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_step(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+    return cpp11::as_sexp(dust_cpu_sir_time(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
 // sir.cpp
@@ -994,10 +1155,10 @@ extern "C" SEXP _seir_dust_cpu_sir_set_rng_state(SEXP ptr, SEXP rng_state) {
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_set_data(SEXP ptr, cpp11::list data);
-extern "C" SEXP _seir_dust_cpu_sir_set_data(SEXP ptr, SEXP data) {
+SEXP dust_cpu_sir_set_data(SEXP ptr, cpp11::list data, bool shared);
+extern "C" SEXP _seir_dust_cpu_sir_set_data(SEXP ptr, SEXP data, SEXP shared) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data)));
+    return cpp11::as_sexp(dust_cpu_sir_set_data(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<cpp11::list>>(data), cpp11::as_cpp<cpp11::decay_t<bool>>(shared)));
   END_CPP11
 }
 // sir.cpp
@@ -1008,10 +1169,10 @@ extern "C" SEXP _seir_dust_cpu_sir_compare_data(SEXP ptr) {
   END_CPP11
 }
 // sir.cpp
-SEXP dust_cpu_sir_filter(SEXP ptr, SEXP step_end, bool save_trajectories, cpp11::sexp step_snapshot, cpp11::sexp min_log_likelihood);
-extern "C" SEXP _seir_dust_cpu_sir_filter(SEXP ptr, SEXP step_end, SEXP save_trajectories, SEXP step_snapshot, SEXP min_log_likelihood) {
+SEXP dust_cpu_sir_filter(SEXP ptr, SEXP time_end, bool save_trajectories, cpp11::sexp time_snapshot, cpp11::sexp min_log_likelihood);
+extern "C" SEXP _seir_dust_cpu_sir_filter(SEXP ptr, SEXP time_end, SEXP save_trajectories, SEXP time_snapshot, SEXP min_log_likelihood) {
   BEGIN_CPP11
-    return cpp11::as_sexp(dust_cpu_sir_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(step_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(step_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
+    return cpp11::as_sexp(dust_cpu_sir_filter(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time_end), cpp11::as_cpp<cpp11::decay_t<bool>>(save_trajectories), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(time_snapshot), cpp11::as_cpp<cpp11::decay_t<cpp11::sexp>>(min_log_likelihood)));
   END_CPP11
 }
 // sir.cpp
@@ -1029,153 +1190,192 @@ extern "C" SEXP _seir_dust_cpu_sir_n_state(SEXP ptr) {
     return cpp11::as_sexp(dust_cpu_sir_n_state(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
   END_CPP11
 }
+// sir.cpp
+void dust_cpu_sir_set_stochastic_schedule(SEXP ptr, SEXP time);
+extern "C" SEXP _seir_dust_cpu_sir_set_stochastic_schedule(SEXP ptr, SEXP time) {
+  BEGIN_CPP11
+    dust_cpu_sir_set_stochastic_schedule(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr), cpp11::as_cpp<cpp11::decay_t<SEXP>>(time));
+    return R_NilValue;
+  END_CPP11
+}
+// sir.cpp
+SEXP dust_cpu_sir_ode_statistics(SEXP ptr);
+extern "C" SEXP _seir_dust_cpu_sir_ode_statistics(SEXP ptr) {
+  BEGIN_CPP11
+    return cpp11::as_sexp(dust_cpu_sir_ode_statistics(cpp11::as_cpp<cpp11::decay_t<SEXP>>(ptr)));
+  END_CPP11
+}
 
 extern "C" {
 static const R_CallMethodDef CallEntries[] = {
-    {"_seir_dust_cpu_seir_alloc",                                           (DL_FUNC) &_seir_dust_cpu_seir_alloc,                                           8},
-    {"_seir_dust_cpu_seir_compare_data",                                    (DL_FUNC) &_seir_dust_cpu_seir_compare_data,                                    1},
-    {"_seir_dust_cpu_seir_filter",                                          (DL_FUNC) &_seir_dust_cpu_seir_filter,                                          5},
-    {"_seir_dust_cpu_seir_n_state",                                         (DL_FUNC) &_seir_dust_cpu_seir_n_state,                                         1},
-    {"_seir_dust_cpu_seir_reorder",                                         (DL_FUNC) &_seir_dust_cpu_seir_reorder,                                         2},
-    {"_seir_dust_cpu_seir_resample",                                        (DL_FUNC) &_seir_dust_cpu_seir_resample,                                        2},
-    {"_seir_dust_cpu_seir_rng_state",                                       (DL_FUNC) &_seir_dust_cpu_seir_rng_state,                                       3},
-    {"_seir_dust_cpu_seir_run",                                             (DL_FUNC) &_seir_dust_cpu_seir_run,                                             2},
-    {"_seir_dust_cpu_seir_set_data",                                        (DL_FUNC) &_seir_dust_cpu_seir_set_data,                                        2},
-    {"_seir_dust_cpu_seir_set_index",                                       (DL_FUNC) &_seir_dust_cpu_seir_set_index,                                       2},
-    {"_seir_dust_cpu_seir_set_n_threads",                                   (DL_FUNC) &_seir_dust_cpu_seir_set_n_threads,                                   2},
-    {"_seir_dust_cpu_seir_set_rng_state",                                   (DL_FUNC) &_seir_dust_cpu_seir_set_rng_state,                                   2},
-    {"_seir_dust_cpu_seir_simulate",                                        (DL_FUNC) &_seir_dust_cpu_seir_simulate,                                        2},
-    {"_seir_dust_cpu_seir_state",                                           (DL_FUNC) &_seir_dust_cpu_seir_state,                                           2},
-    {"_seir_dust_cpu_seir_step",                                            (DL_FUNC) &_seir_dust_cpu_seir_step,                                            1},
-    {"_seir_dust_cpu_seir_update_state",                                    (DL_FUNC) &_seir_dust_cpu_seir_update_state,                                    5},
-    {"_seir_dust_cpu_seirdage_alloc",                                       (DL_FUNC) &_seir_dust_cpu_seirdage_alloc,                                       8},
-    {"_seir_dust_cpu_seirdage_compare_data",                                (DL_FUNC) &_seir_dust_cpu_seirdage_compare_data,                                1},
-    {"_seir_dust_cpu_seirdage_filter",                                      (DL_FUNC) &_seir_dust_cpu_seirdage_filter,                                      5},
-    {"_seir_dust_cpu_seirdage_n_state",                                     (DL_FUNC) &_seir_dust_cpu_seirdage_n_state,                                     1},
-    {"_seir_dust_cpu_seirdage_reorder",                                     (DL_FUNC) &_seir_dust_cpu_seirdage_reorder,                                     2},
-    {"_seir_dust_cpu_seirdage_resample",                                    (DL_FUNC) &_seir_dust_cpu_seirdage_resample,                                    2},
-    {"_seir_dust_cpu_seirdage_rng_state",                                   (DL_FUNC) &_seir_dust_cpu_seirdage_rng_state,                                   3},
-    {"_seir_dust_cpu_seirdage_run",                                         (DL_FUNC) &_seir_dust_cpu_seirdage_run,                                         2},
-    {"_seir_dust_cpu_seirdage_set_data",                                    (DL_FUNC) &_seir_dust_cpu_seirdage_set_data,                                    2},
-    {"_seir_dust_cpu_seirdage_set_index",                                   (DL_FUNC) &_seir_dust_cpu_seirdage_set_index,                                   2},
-    {"_seir_dust_cpu_seirdage_set_n_threads",                               (DL_FUNC) &_seir_dust_cpu_seirdage_set_n_threads,                               2},
-    {"_seir_dust_cpu_seirdage_set_rng_state",                               (DL_FUNC) &_seir_dust_cpu_seirdage_set_rng_state,                               2},
-    {"_seir_dust_cpu_seirdage_simulate",                                    (DL_FUNC) &_seir_dust_cpu_seirdage_simulate,                                    2},
-    {"_seir_dust_cpu_seirdage_state",                                       (DL_FUNC) &_seir_dust_cpu_seirdage_state,                                       2},
-    {"_seir_dust_cpu_seirdage_step",                                        (DL_FUNC) &_seir_dust_cpu_seirdage_step,                                        1},
-    {"_seir_dust_cpu_seirdage_update_state",                                (DL_FUNC) &_seir_dust_cpu_seirdage_update_state,                                5},
-    {"_seir_dust_cpu_seirhdage_alloc",                                      (DL_FUNC) &_seir_dust_cpu_seirhdage_alloc,                                      8},
-    {"_seir_dust_cpu_seirhdage_compare_data",                               (DL_FUNC) &_seir_dust_cpu_seirhdage_compare_data,                               1},
-    {"_seir_dust_cpu_seirhdage_filter",                                     (DL_FUNC) &_seir_dust_cpu_seirhdage_filter,                                     5},
-    {"_seir_dust_cpu_seirhdage_n_state",                                    (DL_FUNC) &_seir_dust_cpu_seirhdage_n_state,                                    1},
-    {"_seir_dust_cpu_seirhdage_reorder",                                    (DL_FUNC) &_seir_dust_cpu_seirhdage_reorder,                                    2},
-    {"_seir_dust_cpu_seirhdage_resample",                                   (DL_FUNC) &_seir_dust_cpu_seirhdage_resample,                                   2},
-    {"_seir_dust_cpu_seirhdage_rng_state",                                  (DL_FUNC) &_seir_dust_cpu_seirhdage_rng_state,                                  3},
-    {"_seir_dust_cpu_seirhdage_run",                                        (DL_FUNC) &_seir_dust_cpu_seirhdage_run,                                        2},
-    {"_seir_dust_cpu_seirhdage_set_data",                                   (DL_FUNC) &_seir_dust_cpu_seirhdage_set_data,                                   2},
-    {"_seir_dust_cpu_seirhdage_set_index",                                  (DL_FUNC) &_seir_dust_cpu_seirhdage_set_index,                                  2},
-    {"_seir_dust_cpu_seirhdage_set_n_threads",                              (DL_FUNC) &_seir_dust_cpu_seirhdage_set_n_threads,                              2},
-    {"_seir_dust_cpu_seirhdage_set_rng_state",                              (DL_FUNC) &_seir_dust_cpu_seirhdage_set_rng_state,                              2},
-    {"_seir_dust_cpu_seirhdage_simulate",                                   (DL_FUNC) &_seir_dust_cpu_seirhdage_simulate,                                   2},
-    {"_seir_dust_cpu_seirhdage_state",                                      (DL_FUNC) &_seir_dust_cpu_seirhdage_state,                                      2},
-    {"_seir_dust_cpu_seirhdage_step",                                       (DL_FUNC) &_seir_dust_cpu_seirhdage_step,                                       1},
-    {"_seir_dust_cpu_seirhdage_update_state",                               (DL_FUNC) &_seir_dust_cpu_seirhdage_update_state,                               5},
-    {"_seir_dust_cpu_seirhdagevax_alloc",                                   (DL_FUNC) &_seir_dust_cpu_seirhdagevax_alloc,                                   8},
-    {"_seir_dust_cpu_seirhdagevax_compare_data",                            (DL_FUNC) &_seir_dust_cpu_seirhdagevax_compare_data,                            1},
-    {"_seir_dust_cpu_seirhdagevax_filter",                                  (DL_FUNC) &_seir_dust_cpu_seirhdagevax_filter,                                  5},
-    {"_seir_dust_cpu_seirhdagevax_n_state",                                 (DL_FUNC) &_seir_dust_cpu_seirhdagevax_n_state,                                 1},
-    {"_seir_dust_cpu_seirhdagevax_reorder",                                 (DL_FUNC) &_seir_dust_cpu_seirhdagevax_reorder,                                 2},
-    {"_seir_dust_cpu_seirhdagevax_resample",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevax_resample,                                2},
-    {"_seir_dust_cpu_seirhdagevax_rng_state",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevax_rng_state,                               3},
-    {"_seir_dust_cpu_seirhdagevax_run",                                     (DL_FUNC) &_seir_dust_cpu_seirhdagevax_run,                                     2},
-    {"_seir_dust_cpu_seirhdagevax_set_data",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_data,                                2},
-    {"_seir_dust_cpu_seirhdagevax_set_index",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_index,                               2},
-    {"_seir_dust_cpu_seirhdagevax_set_n_threads",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_n_threads,                           2},
-    {"_seir_dust_cpu_seirhdagevax_set_rng_state",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_rng_state,                           2},
-    {"_seir_dust_cpu_seirhdagevax_simulate",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevax_simulate,                                2},
-    {"_seir_dust_cpu_seirhdagevax_state",                                   (DL_FUNC) &_seir_dust_cpu_seirhdagevax_state,                                   2},
-    {"_seir_dust_cpu_seirhdagevax_step",                                    (DL_FUNC) &_seir_dust_cpu_seirhdagevax_step,                                    1},
-    {"_seir_dust_cpu_seirhdagevax_update_state",                            (DL_FUNC) &_seir_dust_cpu_seirhdagevax_update_state,                            5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_alloc",                        (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_alloc,                        8},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_compare_data",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_compare_data,                 1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_filter",                       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_filter,                       5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_n_state",                      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_n_state,                      1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_reorder",                      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_reorder,                      2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_resample",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_resample,                     2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_rng_state",                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_rng_state,                    3},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_run",                          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_run,                          2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_data",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_data,                     2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_index",                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_index,                    2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_n_threads",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_n_threads,                2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_rng_state",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_rng_state,                2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_simulate",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_simulate,                     2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_state",                        (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_state,                        2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_step",                         (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_step,                         1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrain_update_state",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_update_state,                 5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_alloc",                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_alloc,                    8},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_compare_data",             (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_compare_data,             1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_filter",                   (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_filter,                   5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_n_state",                  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_n_state,                  1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_reorder",                  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_reorder,                  2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_resample",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_resample,                 2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_rng_state",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_rng_state,                3},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_run",                      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_run,                      2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_data",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_data,                 2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_index",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_index,                2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_n_threads",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_n_threads,            2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_rng_state",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_rng_state,            2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_simulate",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_simulate,                 2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_state",                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_state,                    2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_step",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_step,                     1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_update_state",             (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_update_state,             5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc",         (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc,         8},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_compare_data",  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_compare_data,  1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter",        (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter,        5},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state",       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state,       1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_reorder",       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_reorder,       2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_resample",      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_resample,      2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_rng_state",     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_rng_state,     3},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run",           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run,           2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data",      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data,      2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_index",     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_index,     2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_n_threads", (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_n_threads, 2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_rng_state", (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_rng_state, 2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate",      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate,      2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_state",         (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_state,         2},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_step",          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_step,          1},
-    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state",  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state,  5},
-    {"_seir_dust_cpu_sir_alloc",                                            (DL_FUNC) &_seir_dust_cpu_sir_alloc,                                            8},
-    {"_seir_dust_cpu_sir_compare_data",                                     (DL_FUNC) &_seir_dust_cpu_sir_compare_data,                                     1},
-    {"_seir_dust_cpu_sir_filter",                                           (DL_FUNC) &_seir_dust_cpu_sir_filter,                                           5},
-    {"_seir_dust_cpu_sir_n_state",                                          (DL_FUNC) &_seir_dust_cpu_sir_n_state,                                          1},
-    {"_seir_dust_cpu_sir_reorder",                                          (DL_FUNC) &_seir_dust_cpu_sir_reorder,                                          2},
-    {"_seir_dust_cpu_sir_resample",                                         (DL_FUNC) &_seir_dust_cpu_sir_resample,                                         2},
-    {"_seir_dust_cpu_sir_rng_state",                                        (DL_FUNC) &_seir_dust_cpu_sir_rng_state,                                        3},
-    {"_seir_dust_cpu_sir_run",                                              (DL_FUNC) &_seir_dust_cpu_sir_run,                                              2},
-    {"_seir_dust_cpu_sir_set_data",                                         (DL_FUNC) &_seir_dust_cpu_sir_set_data,                                         2},
-    {"_seir_dust_cpu_sir_set_index",                                        (DL_FUNC) &_seir_dust_cpu_sir_set_index,                                        2},
-    {"_seir_dust_cpu_sir_set_n_threads",                                    (DL_FUNC) &_seir_dust_cpu_sir_set_n_threads,                                    2},
-    {"_seir_dust_cpu_sir_set_rng_state",                                    (DL_FUNC) &_seir_dust_cpu_sir_set_rng_state,                                    2},
-    {"_seir_dust_cpu_sir_simulate",                                         (DL_FUNC) &_seir_dust_cpu_sir_simulate,                                         2},
-    {"_seir_dust_cpu_sir_state",                                            (DL_FUNC) &_seir_dust_cpu_sir_state,                                            2},
-    {"_seir_dust_cpu_sir_step",                                             (DL_FUNC) &_seir_dust_cpu_sir_step,                                             1},
-    {"_seir_dust_cpu_sir_update_state",                                     (DL_FUNC) &_seir_dust_cpu_sir_update_state,                                     5},
-    {"_seir_dust_seir_capabilities",                                        (DL_FUNC) &_seir_dust_seir_capabilities,                                        0},
-    {"_seir_dust_seir_gpu_info",                                            (DL_FUNC) &_seir_dust_seir_gpu_info,                                            0},
-    {"_seir_dust_seirdage_capabilities",                                    (DL_FUNC) &_seir_dust_seirdage_capabilities,                                    0},
-    {"_seir_dust_seirdage_gpu_info",                                        (DL_FUNC) &_seir_dust_seirdage_gpu_info,                                        0},
-    {"_seir_dust_seirhdage_capabilities",                                   (DL_FUNC) &_seir_dust_seirhdage_capabilities,                                   0},
-    {"_seir_dust_seirhdage_gpu_info",                                       (DL_FUNC) &_seir_dust_seirhdage_gpu_info,                                       0},
-    {"_seir_dust_seirhdagevax_capabilities",                                (DL_FUNC) &_seir_dust_seirhdagevax_capabilities,                                0},
-    {"_seir_dust_seirhdagevax_gpu_info",                                    (DL_FUNC) &_seir_dust_seirhdagevax_gpu_info,                                    0},
-    {"_seir_dust_seirhdagevaxmultistrain_capabilities",                     (DL_FUNC) &_seir_dust_seirhdagevaxmultistrain_capabilities,                     0},
-    {"_seir_dust_seirhdagevaxmultistrain_gpu_info",                         (DL_FUNC) &_seir_dust_seirhdagevaxmultistrain_gpu_info,                         0},
-    {"_seir_dust_seirhdagevaxmultistrainsero_capabilities",                 (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainsero_capabilities,                 0},
-    {"_seir_dust_seirhdagevaxmultistrainsero_gpu_info",                     (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainsero_gpu_info,                     0},
-    {"_seir_dust_seirhdagevaxmultistrainserotimedepbeta_capabilities",      (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainserotimedepbeta_capabilities,      0},
-    {"_seir_dust_seirhdagevaxmultistrainserotimedepbeta_gpu_info",          (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainserotimedepbeta_gpu_info,          0},
-    {"_seir_dust_sir_capabilities",                                         (DL_FUNC) &_seir_dust_sir_capabilities,                                         0},
-    {"_seir_dust_sir_gpu_info",                                             (DL_FUNC) &_seir_dust_sir_gpu_info,                                             0},
+    {"_seir_dust_cpu_seir_alloc",                                                     (DL_FUNC) &_seir_dust_cpu_seir_alloc,                                                     9},
+    {"_seir_dust_cpu_seir_capabilities",                                              (DL_FUNC) &_seir_dust_cpu_seir_capabilities,                                              0},
+    {"_seir_dust_cpu_seir_compare_data",                                              (DL_FUNC) &_seir_dust_cpu_seir_compare_data,                                              1},
+    {"_seir_dust_cpu_seir_filter",                                                    (DL_FUNC) &_seir_dust_cpu_seir_filter,                                                    5},
+    {"_seir_dust_cpu_seir_n_state",                                                   (DL_FUNC) &_seir_dust_cpu_seir_n_state,                                                   1},
+    {"_seir_dust_cpu_seir_ode_statistics",                                            (DL_FUNC) &_seir_dust_cpu_seir_ode_statistics,                                            1},
+    {"_seir_dust_cpu_seir_reorder",                                                   (DL_FUNC) &_seir_dust_cpu_seir_reorder,                                                   2},
+    {"_seir_dust_cpu_seir_resample",                                                  (DL_FUNC) &_seir_dust_cpu_seir_resample,                                                  2},
+    {"_seir_dust_cpu_seir_rng_state",                                                 (DL_FUNC) &_seir_dust_cpu_seir_rng_state,                                                 3},
+    {"_seir_dust_cpu_seir_run",                                                       (DL_FUNC) &_seir_dust_cpu_seir_run,                                                       2},
+    {"_seir_dust_cpu_seir_run_adjoint",                                               (DL_FUNC) &_seir_dust_cpu_seir_run_adjoint,                                               1},
+    {"_seir_dust_cpu_seir_set_data",                                                  (DL_FUNC) &_seir_dust_cpu_seir_set_data,                                                  3},
+    {"_seir_dust_cpu_seir_set_index",                                                 (DL_FUNC) &_seir_dust_cpu_seir_set_index,                                                 2},
+    {"_seir_dust_cpu_seir_set_n_threads",                                             (DL_FUNC) &_seir_dust_cpu_seir_set_n_threads,                                             2},
+    {"_seir_dust_cpu_seir_set_rng_state",                                             (DL_FUNC) &_seir_dust_cpu_seir_set_rng_state,                                             2},
+    {"_seir_dust_cpu_seir_set_stochastic_schedule",                                   (DL_FUNC) &_seir_dust_cpu_seir_set_stochastic_schedule,                                   2},
+    {"_seir_dust_cpu_seir_simulate",                                                  (DL_FUNC) &_seir_dust_cpu_seir_simulate,                                                  2},
+    {"_seir_dust_cpu_seir_state",                                                     (DL_FUNC) &_seir_dust_cpu_seir_state,                                                     2},
+    {"_seir_dust_cpu_seir_time",                                                      (DL_FUNC) &_seir_dust_cpu_seir_time,                                                      1},
+    {"_seir_dust_cpu_seir_update_state",                                              (DL_FUNC) &_seir_dust_cpu_seir_update_state,                                              7},
+    {"_seir_dust_cpu_seirdage_alloc",                                                 (DL_FUNC) &_seir_dust_cpu_seirdage_alloc,                                                 9},
+    {"_seir_dust_cpu_seirdage_capabilities",                                          (DL_FUNC) &_seir_dust_cpu_seirdage_capabilities,                                          0},
+    {"_seir_dust_cpu_seirdage_compare_data",                                          (DL_FUNC) &_seir_dust_cpu_seirdage_compare_data,                                          1},
+    {"_seir_dust_cpu_seirdage_filter",                                                (DL_FUNC) &_seir_dust_cpu_seirdage_filter,                                                5},
+    {"_seir_dust_cpu_seirdage_n_state",                                               (DL_FUNC) &_seir_dust_cpu_seirdage_n_state,                                               1},
+    {"_seir_dust_cpu_seirdage_ode_statistics",                                        (DL_FUNC) &_seir_dust_cpu_seirdage_ode_statistics,                                        1},
+    {"_seir_dust_cpu_seirdage_reorder",                                               (DL_FUNC) &_seir_dust_cpu_seirdage_reorder,                                               2},
+    {"_seir_dust_cpu_seirdage_resample",                                              (DL_FUNC) &_seir_dust_cpu_seirdage_resample,                                              2},
+    {"_seir_dust_cpu_seirdage_rng_state",                                             (DL_FUNC) &_seir_dust_cpu_seirdage_rng_state,                                             3},
+    {"_seir_dust_cpu_seirdage_run",                                                   (DL_FUNC) &_seir_dust_cpu_seirdage_run,                                                   2},
+    {"_seir_dust_cpu_seirdage_run_adjoint",                                           (DL_FUNC) &_seir_dust_cpu_seirdage_run_adjoint,                                           1},
+    {"_seir_dust_cpu_seirdage_set_data",                                              (DL_FUNC) &_seir_dust_cpu_seirdage_set_data,                                              3},
+    {"_seir_dust_cpu_seirdage_set_index",                                             (DL_FUNC) &_seir_dust_cpu_seirdage_set_index,                                             2},
+    {"_seir_dust_cpu_seirdage_set_n_threads",                                         (DL_FUNC) &_seir_dust_cpu_seirdage_set_n_threads,                                         2},
+    {"_seir_dust_cpu_seirdage_set_rng_state",                                         (DL_FUNC) &_seir_dust_cpu_seirdage_set_rng_state,                                         2},
+    {"_seir_dust_cpu_seirdage_set_stochastic_schedule",                               (DL_FUNC) &_seir_dust_cpu_seirdage_set_stochastic_schedule,                               2},
+    {"_seir_dust_cpu_seirdage_simulate",                                              (DL_FUNC) &_seir_dust_cpu_seirdage_simulate,                                              2},
+    {"_seir_dust_cpu_seirdage_state",                                                 (DL_FUNC) &_seir_dust_cpu_seirdage_state,                                                 2},
+    {"_seir_dust_cpu_seirdage_time",                                                  (DL_FUNC) &_seir_dust_cpu_seirdage_time,                                                  1},
+    {"_seir_dust_cpu_seirdage_update_state",                                          (DL_FUNC) &_seir_dust_cpu_seirdage_update_state,                                          7},
+    {"_seir_dust_cpu_seirhdage_alloc",                                                (DL_FUNC) &_seir_dust_cpu_seirhdage_alloc,                                                9},
+    {"_seir_dust_cpu_seirhdage_capabilities",                                         (DL_FUNC) &_seir_dust_cpu_seirhdage_capabilities,                                         0},
+    {"_seir_dust_cpu_seirhdage_compare_data",                                         (DL_FUNC) &_seir_dust_cpu_seirhdage_compare_data,                                         1},
+    {"_seir_dust_cpu_seirhdage_filter",                                               (DL_FUNC) &_seir_dust_cpu_seirhdage_filter,                                               5},
+    {"_seir_dust_cpu_seirhdage_n_state",                                              (DL_FUNC) &_seir_dust_cpu_seirhdage_n_state,                                              1},
+    {"_seir_dust_cpu_seirhdage_ode_statistics",                                       (DL_FUNC) &_seir_dust_cpu_seirhdage_ode_statistics,                                       1},
+    {"_seir_dust_cpu_seirhdage_reorder",                                              (DL_FUNC) &_seir_dust_cpu_seirhdage_reorder,                                              2},
+    {"_seir_dust_cpu_seirhdage_resample",                                             (DL_FUNC) &_seir_dust_cpu_seirhdage_resample,                                             2},
+    {"_seir_dust_cpu_seirhdage_rng_state",                                            (DL_FUNC) &_seir_dust_cpu_seirhdage_rng_state,                                            3},
+    {"_seir_dust_cpu_seirhdage_run",                                                  (DL_FUNC) &_seir_dust_cpu_seirhdage_run,                                                  2},
+    {"_seir_dust_cpu_seirhdage_run_adjoint",                                          (DL_FUNC) &_seir_dust_cpu_seirhdage_run_adjoint,                                          1},
+    {"_seir_dust_cpu_seirhdage_set_data",                                             (DL_FUNC) &_seir_dust_cpu_seirhdage_set_data,                                             3},
+    {"_seir_dust_cpu_seirhdage_set_index",                                            (DL_FUNC) &_seir_dust_cpu_seirhdage_set_index,                                            2},
+    {"_seir_dust_cpu_seirhdage_set_n_threads",                                        (DL_FUNC) &_seir_dust_cpu_seirhdage_set_n_threads,                                        2},
+    {"_seir_dust_cpu_seirhdage_set_rng_state",                                        (DL_FUNC) &_seir_dust_cpu_seirhdage_set_rng_state,                                        2},
+    {"_seir_dust_cpu_seirhdage_set_stochastic_schedule",                              (DL_FUNC) &_seir_dust_cpu_seirhdage_set_stochastic_schedule,                              2},
+    {"_seir_dust_cpu_seirhdage_simulate",                                             (DL_FUNC) &_seir_dust_cpu_seirhdage_simulate,                                             2},
+    {"_seir_dust_cpu_seirhdage_state",                                                (DL_FUNC) &_seir_dust_cpu_seirhdage_state,                                                2},
+    {"_seir_dust_cpu_seirhdage_time",                                                 (DL_FUNC) &_seir_dust_cpu_seirhdage_time,                                                 1},
+    {"_seir_dust_cpu_seirhdage_update_state",                                         (DL_FUNC) &_seir_dust_cpu_seirhdage_update_state,                                         7},
+    {"_seir_dust_cpu_seirhdagevax_alloc",                                             (DL_FUNC) &_seir_dust_cpu_seirhdagevax_alloc,                                             9},
+    {"_seir_dust_cpu_seirhdagevax_capabilities",                                      (DL_FUNC) &_seir_dust_cpu_seirhdagevax_capabilities,                                      0},
+    {"_seir_dust_cpu_seirhdagevax_compare_data",                                      (DL_FUNC) &_seir_dust_cpu_seirhdagevax_compare_data,                                      1},
+    {"_seir_dust_cpu_seirhdagevax_filter",                                            (DL_FUNC) &_seir_dust_cpu_seirhdagevax_filter,                                            5},
+    {"_seir_dust_cpu_seirhdagevax_n_state",                                           (DL_FUNC) &_seir_dust_cpu_seirhdagevax_n_state,                                           1},
+    {"_seir_dust_cpu_seirhdagevax_ode_statistics",                                    (DL_FUNC) &_seir_dust_cpu_seirhdagevax_ode_statistics,                                    1},
+    {"_seir_dust_cpu_seirhdagevax_reorder",                                           (DL_FUNC) &_seir_dust_cpu_seirhdagevax_reorder,                                           2},
+    {"_seir_dust_cpu_seirhdagevax_resample",                                          (DL_FUNC) &_seir_dust_cpu_seirhdagevax_resample,                                          2},
+    {"_seir_dust_cpu_seirhdagevax_rng_state",                                         (DL_FUNC) &_seir_dust_cpu_seirhdagevax_rng_state,                                         3},
+    {"_seir_dust_cpu_seirhdagevax_run",                                               (DL_FUNC) &_seir_dust_cpu_seirhdagevax_run,                                               2},
+    {"_seir_dust_cpu_seirhdagevax_run_adjoint",                                       (DL_FUNC) &_seir_dust_cpu_seirhdagevax_run_adjoint,                                       1},
+    {"_seir_dust_cpu_seirhdagevax_set_data",                                          (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_data,                                          3},
+    {"_seir_dust_cpu_seirhdagevax_set_index",                                         (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_index,                                         2},
+    {"_seir_dust_cpu_seirhdagevax_set_n_threads",                                     (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_n_threads,                                     2},
+    {"_seir_dust_cpu_seirhdagevax_set_rng_state",                                     (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_rng_state,                                     2},
+    {"_seir_dust_cpu_seirhdagevax_set_stochastic_schedule",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevax_set_stochastic_schedule,                           2},
+    {"_seir_dust_cpu_seirhdagevax_simulate",                                          (DL_FUNC) &_seir_dust_cpu_seirhdagevax_simulate,                                          2},
+    {"_seir_dust_cpu_seirhdagevax_state",                                             (DL_FUNC) &_seir_dust_cpu_seirhdagevax_state,                                             2},
+    {"_seir_dust_cpu_seirhdagevax_time",                                              (DL_FUNC) &_seir_dust_cpu_seirhdagevax_time,                                              1},
+    {"_seir_dust_cpu_seirhdagevax_update_state",                                      (DL_FUNC) &_seir_dust_cpu_seirhdagevax_update_state,                                      7},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_alloc",                                  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_alloc,                                  9},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_capabilities",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_capabilities,                           0},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_compare_data",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_compare_data,                           1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_filter",                                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_filter,                                 5},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_n_state",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_n_state,                                1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_ode_statistics",                         (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_ode_statistics,                         1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_reorder",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_reorder,                                2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_resample",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_resample,                               2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_rng_state",                              (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_rng_state,                              3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_run",                                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_run,                                    2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_run_adjoint",                            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_run_adjoint,                            1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_data",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_data,                               3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_index",                              (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_index,                              2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_n_threads",                          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_n_threads,                          2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_rng_state",                          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_rng_state,                          2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_set_stochastic_schedule",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_set_stochastic_schedule,                2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_simulate",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_simulate,                               2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_state",                                  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_state,                                  2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_time",                                   (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_time,                                   1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrain_update_state",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrain_update_state,                           7},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_alloc",                              (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_alloc,                              9},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_capabilities",                       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_capabilities,                       0},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_compare_data",                       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_compare_data,                       1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_filter",                             (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_filter,                             5},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_n_state",                            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_n_state,                            1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_ode_statistics",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_ode_statistics,                     1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_reorder",                            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_reorder,                            2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_resample",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_resample,                           2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_rng_state",                          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_rng_state,                          3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_run",                                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_run,                                2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_run_adjoint",                        (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_run_adjoint,                        1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_data",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_data,                           3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_index",                          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_index,                          2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_n_threads",                      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_n_threads,                      2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_rng_state",                      (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_rng_state,                      2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_set_stochastic_schedule",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_set_stochastic_schedule,            2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_simulate",                           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_simulate,                           2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_state",                              (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_state,                              2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_time",                               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_time,                               1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainsero_update_state",                       (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainsero_update_state,                       7},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc",                   (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_alloc,                   9},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_capabilities",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_capabilities,            0},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_compare_data",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_compare_data,            1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter",                  (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_filter,                  5},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_n_state,                 1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_ode_statistics",          (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_ode_statistics,          1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_reorder",                 (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_reorder,                 2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_resample",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_resample,                2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_rng_state",               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_rng_state,               3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run",                     (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run,                     2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run_adjoint",             (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_run_adjoint,             1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_data,                3},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_index",               (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_index,               2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_n_threads",           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_n_threads,           2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_rng_state",           (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_rng_state,           2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_stochastic_schedule", (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_set_stochastic_schedule, 2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate",                (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_simulate,                2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_state",                   (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_state,                   2},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_time",                    (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_time,                    1},
+    {"_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state",            (DL_FUNC) &_seir_dust_cpu_seirhdagevaxmultistrainserotimedepbeta_update_state,            7},
+    {"_seir_dust_cpu_sir_alloc",                                                      (DL_FUNC) &_seir_dust_cpu_sir_alloc,                                                      9},
+    {"_seir_dust_cpu_sir_capabilities",                                               (DL_FUNC) &_seir_dust_cpu_sir_capabilities,                                               0},
+    {"_seir_dust_cpu_sir_compare_data",                                               (DL_FUNC) &_seir_dust_cpu_sir_compare_data,                                               1},
+    {"_seir_dust_cpu_sir_filter",                                                     (DL_FUNC) &_seir_dust_cpu_sir_filter,                                                     5},
+    {"_seir_dust_cpu_sir_n_state",                                                    (DL_FUNC) &_seir_dust_cpu_sir_n_state,                                                    1},
+    {"_seir_dust_cpu_sir_ode_statistics",                                             (DL_FUNC) &_seir_dust_cpu_sir_ode_statistics,                                             1},
+    {"_seir_dust_cpu_sir_reorder",                                                    (DL_FUNC) &_seir_dust_cpu_sir_reorder,                                                    2},
+    {"_seir_dust_cpu_sir_resample",                                                   (DL_FUNC) &_seir_dust_cpu_sir_resample,                                                   2},
+    {"_seir_dust_cpu_sir_rng_state",                                                  (DL_FUNC) &_seir_dust_cpu_sir_rng_state,                                                  3},
+    {"_seir_dust_cpu_sir_run",                                                        (DL_FUNC) &_seir_dust_cpu_sir_run,                                                        2},
+    {"_seir_dust_cpu_sir_run_adjoint",                                                (DL_FUNC) &_seir_dust_cpu_sir_run_adjoint,                                                1},
+    {"_seir_dust_cpu_sir_set_data",                                                   (DL_FUNC) &_seir_dust_cpu_sir_set_data,                                                   3},
+    {"_seir_dust_cpu_sir_set_index",                                                  (DL_FUNC) &_seir_dust_cpu_sir_set_index,                                                  2},
+    {"_seir_dust_cpu_sir_set_n_threads",                                              (DL_FUNC) &_seir_dust_cpu_sir_set_n_threads,                                              2},
+    {"_seir_dust_cpu_sir_set_rng_state",                                              (DL_FUNC) &_seir_dust_cpu_sir_set_rng_state,                                              2},
+    {"_seir_dust_cpu_sir_set_stochastic_schedule",                                    (DL_FUNC) &_seir_dust_cpu_sir_set_stochastic_schedule,                                    2},
+    {"_seir_dust_cpu_sir_simulate",                                                   (DL_FUNC) &_seir_dust_cpu_sir_simulate,                                                   2},
+    {"_seir_dust_cpu_sir_state",                                                      (DL_FUNC) &_seir_dust_cpu_sir_state,                                                      2},
+    {"_seir_dust_cpu_sir_time",                                                       (DL_FUNC) &_seir_dust_cpu_sir_time,                                                       1},
+    {"_seir_dust_cpu_sir_update_state",                                               (DL_FUNC) &_seir_dust_cpu_sir_update_state,                                               7},
+    {"_seir_dust_seir_gpu_info",                                                      (DL_FUNC) &_seir_dust_seir_gpu_info,                                                      0},
+    {"_seir_dust_seirdage_gpu_info",                                                  (DL_FUNC) &_seir_dust_seirdage_gpu_info,                                                  0},
+    {"_seir_dust_seirhdage_gpu_info",                                                 (DL_FUNC) &_seir_dust_seirhdage_gpu_info,                                                 0},
+    {"_seir_dust_seirhdagevax_gpu_info",                                              (DL_FUNC) &_seir_dust_seirhdagevax_gpu_info,                                              0},
+    {"_seir_dust_seirhdagevaxmultistrain_gpu_info",                                   (DL_FUNC) &_seir_dust_seirhdagevaxmultistrain_gpu_info,                                   0},
+    {"_seir_dust_seirhdagevaxmultistrainsero_gpu_info",                               (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainsero_gpu_info,                               0},
+    {"_seir_dust_seirhdagevaxmultistrainserotimedepbeta_gpu_info",                    (DL_FUNC) &_seir_dust_seirhdagevaxmultistrainserotimedepbeta_gpu_info,                    0},
+    {"_seir_dust_sir_gpu_info",                                                       (DL_FUNC) &_seir_dust_sir_gpu_info,                                                       0},
     {NULL, NULL, 0}
 };
 }
