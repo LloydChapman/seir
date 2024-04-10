@@ -5,20 +5,24 @@ This package demonstrates use of the [odin](https://mrc-ide.github.io/odin/), [d
 ## Requirements
 The package requires the following versions of the [eigen1](https://github.com/mrc-ide/eigen1/), odin, dust, [odin.dust](https://mrc-ide.github.io/odin.dust/) and mcstate packages to be installed:
 ```
-eigen1 0.1.1
-odin 1.3.2
-dust 0.11.24
-odin.dust 0.2.16 
-mcstate 0.9.0
+eigen1 0.1.3
+odin 1.5.10
+dust 0.15.1
+odin.dust 0.3.10 
+mcstate 0.9.20
 ```
 These can be installed in R with:
 ```r
 remotes::install_github(c(
-  "mrc-ide/eigen1@v0.1.1",
-  "mrc-ide/odin@v1.3.2",
-  "mrc-ide/dust@v0.11.24",
-  "mrc-ide/odin.dust@v0.2.16",
-  "mrc-ide/mcstate@v0.9.0"))
+  "mrc-ide/eigen1@v0.1.3",
+  "mrc-ide/odin@v1.5.10",
+  "mrc-ide/dust@v0.15.1",
+  "mrc-ide/odin.dust@v0.3.10",
+  "mrc-ide/mcstate@v0.9.20"))
+```
+The vignettes use the [coda](https://cran.r-project.org/web/packages/coda/index.html) package, which can be installed from CRAN with:
+```r
+install.packages("coda")
 ```
 
 ## Installation
