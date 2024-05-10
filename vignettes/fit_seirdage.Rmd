@@ -33,13 +33,10 @@ contact <- socialmixr::contact_matrix(survey = polymod,countries = "United Kingd
 # rather than the contact matrix. This transmission matrix is
 # weighted by the population in each age band.
 transmission <- contact$matrix/rep(round(contact$demography$population/1e4), each = ncol(contact$matrix))
-# for (i in 1:nrow(transmission)){
-#   transmission[i,i] <- transmission[2,2]  
-# }
 transmission
 ```
 
-Next, we define the model and its inputs. The model `seirdage` is a pre-compiled [`odin` model](https://mrc-ide.github.io/odin/) generated from the odin code defined in [inst/odin/seirdage.R](inst/odin/seirdage.R). We use data on the infection fatality risk (IFR) from [O'Driscoll et al (2020)](https://www.nature.com/articles/s41586-020-2918-0). We also define initial conditions for the model; if users require parameters for a known pathogen, these could potentially be sourced from the [`epiparameter` package](https://epiverse-trace.github.io/epiparameter/) using the `epidist_db` and `get_parameters` functions.
+Next, we define the model and its inputs. The model `seirdage` is a pre-compiled [`odin` model](https://mrc-ide.github.io/odin/) generated from the odin code defined in `inst/odin/seirdage.R`. We use data on the infection fatality risk (IFR) from [O'Driscoll et al (2020)](https://www.nature.com/articles/s41586-020-2918-0). We also define initial conditions for the model; if users require parameters for a known pathogen, these could potentially be sourced from the [`epiparameter` package](https://epiverse-trace.github.io/epiparameter/) using the `epidist_db` and `get_parameters` functions.
 
 With the model specified, we then simulate an epidemic forward over 150 days and output age-stratified trajectories for the susceptible, exposed, infected, recovered, and cumulative deaths compartments.
 ```{r}
@@ -68,8 +65,10 @@ n_steps <- 600 #1000
 
 # Create data to be fitted to
 # Create an array to contain outputs after looping the model.
-# Array contains XX rows = Total S, E, I, R (4), and
-# in each age compartment (XX) as well as the cumulative incidence (XX)
+# Array contains 60 rows = Total S, E, I, R, D (5), and
+# in each age compartment (40), total incidence of new 
+# infectious cases and deaths (2) and in each age compartment 
+# (8 + 5) (deaths <40 years of age are grouped together)
 x <- array(NA, dim = c(seird_age_model$info()$len, 1, n_steps+1))
 
 # For loop to run the model iteratively
@@ -105,7 +104,6 @@ Next, we simulate some observed data by extracting the model states and adding s
 # Extract true history of model states
 true_history <- x[ , ,seq(0,n_steps+1,by=1/dt)+1,drop=F]
 
-# incidence <- -t(diff(t(true_history[7:14,])))
 incidence <- true_history[6, ,-1]
 
 # Add noise
@@ -141,8 +139,6 @@ compare <- function(state, observed, pars = NULL){
 Next, we define a particle filter that propagates a set of particles of size `n_particles` over time, with each particle representing a single output from the model (`seirdage`). At each time step, the particle filter uses the comparison function (`compare`) and observed data (`data`) to weight and resample the particles.
 ```{r}
 # Create particle filter
-# n_particles <- 500
-# filter <- mcstate::particle_filter$new(data, seirdage, n_particles, compare)
 filter_deterministic <- mcstate::particle_deterministic$new(data, seirdage, compare)
 filter_deterministic$run(save_history = TRUE,
            pars = list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
@@ -218,37 +214,21 @@ beta <- mcstate::pmcmc_parameter("beta",0.1,min = 0,
                         prior = function(x) dgamma(x,shape = 1,scale = 0.1,log = TRUE))
 gamma <- mcstate::pmcmc_parameter("gamma",0.1,min = 0,
                          prior = function(x) dgamma(x,shape = 1,scale = 0.2,log = TRUE))
-# sigma <- mcstate::pmcmc_parameter("sigma",0.3,min = 0,
-#                          prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
 
 make_transform <- function(pars,dt,S_ini,E_ini,I_ini,sigma,m,p_death,N_age){
-# make_transform <- function(pars,dt,S_ini,E_ini,I_ini,gamma,m,p_death,N_age){
-# make_transform <- function(pars,dt,S_ini,E_ini,I_ini,sigma,gamma,m,p_death,N_age){
     function(pars){
         beta <- pars[["beta"]]
         gamma <- pars[["gamma"]]
-        # sigma <- pars[["sigma"]]
         list(beta = beta,gamma = gamma,dt = dt,S_ini = S_ini,E_ini = E_ini,
                 I_ini = I_ini,sigma = sigma,m = m,p_death = p_death,N_age = N_age)
     }
 }
 
 transform <- make_transform(pars,dt,S_ini,E_ini,I_ini,sigma = 0.5,transmission,p_death,N_age)
-# transform <- make_transform(pars,dt,S_ini,E_ini,I_ini,gamma = 0.1,transmission,p_death,N_age)
-# transform <- make_transform(pars,dt,S_ini,E_ini,I_ini,sigma = 0.5,gamma = 0.1,transmission,p_death,N_age)
-
 proposal_matrix <- matrix(c(0.003^2,0,0,0.01^2),nrow = 2,ncol = 2,byrow = TRUE)
-# proposal_matrix <- matrix(c(0.01^2,0,0,0.05^2),nrow = 2,ncol = 2,byrow = TRUE)
-# proposal_matrix <- matrix(0.002^2,nrow = 1,ncol = 1)
-mcmc_pars <- mcstate::pmcmc_parameters$new(# list(beta = beta),
-                                  list(beta = beta,gamma = gamma),
-                                  proposal_matrix,transform = transform)
-# mcmc_pars <- mcstate::pmcmc_parameters$new(#list(beta = beta),
-#                                   list(beta = beta,sigma = sigma),
-#                                   proposal_matrix,transform = transform
-#                                   )
-# mcmc_pars$fix(list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
-#                    sigma = 0.5,m = transmission,p_death = p_death,N_age = N_age))
+mcmc_pars <- mcstate::pmcmc_parameters$new(
+  list(beta = beta,gamma = gamma),
+  proposal_matrix,transform = transform)
 ```
 We then run the pMCMC and plot the posterior samples:
 ```{r}
@@ -286,24 +266,17 @@ coda::effectiveSize(mcmc_out)
 n_particles <- 100
 filter <- mcstate::particle_filter$new(data, seirdage, n_particles, compare)
 
-# # Tune pMCMC
+# Tune pMCMC
 # Start from last sample of first chain
 beta <- mcstate::pmcmc_parameter("beta",pmcmc_run$pars[nrow(pmcmc_run$pars),"beta"],
                         min = 0,prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
 gamma <- mcstate::pmcmc_parameter("gamma",pmcmc_run$pars[nrow(pmcmc_run$pars),"gamma"],
                         min = 0,prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
-# sigma <- mcstate::pmcmc_parameter("sigma",pmcmc_run$pars[nrow(pmcmc_run$pars),"sigma"],
-#                         min = 0,prior = function(x) dgamma(x,shape = 1,scale = 1,log = TRUE))
-# # This doesn't seem to work, chain stays stuck at posterior mode
 proposal_matrix1 <- cov(pmcmc_run$pars) # use empirical covariance matrix from first run
-mcmc_pars1 <- mcstate::pmcmc_parameters$new(#list(beta = beta),
-                                   list(beta = beta,gamma = gamma),
-                                   proposal_matrix1,transform = transform)
-# mcmc_pars1 <- mcstate::pmcmc_parameters$new(#list(beta = beta),
-#                                    list(beta = beta,sigma = sigma),
-#                                    proposal_matrix1,transform = transform)
+mcmc_pars1 <- mcstate::pmcmc_parameters$new(
+  list(beta = beta,gamma = gamma),
+  proposal_matrix1,transform = transform)
 
-# Run 4 chains with this proposal matrix
 control1 <- mcstate::pmcmc_control(
     1000,
     save_state = TRUE,
