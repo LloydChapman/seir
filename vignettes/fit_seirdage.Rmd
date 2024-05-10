@@ -21,7 +21,7 @@ options(rmarkdown.html_vignette.check_title = FALSE)
 library(seir)
 ```
 
-First, we important demographic and social mixing data from the [`socialmixr` package](https://epiforecasts.io/socialmixr/). This contains a range of datasets, but here we use the 2008 POLYMOD survey from the UK, with ages defined in 10 year bands.
+First, we import demographic and social mixing data from the [`socialmixr` package](https://epiforecasts.io/socialmixr/). This contains a range of datasets, but here we use the 2008 POLYMOD survey from the UK, with ages defined in 10 year bands.
 ```{r}
 # Get age-structured contact matrix
 data(polymod, package = "socialmixr")
@@ -39,9 +39,9 @@ transmission <- contact$matrix/rep(round(contact$demography$population/1e4), eac
 transmission
 ```
 
-Next, we define the model and its inputs. The model `seirdage` is a pre-compiled [`odin` model](https://mrc-ide.github.io/odin/) generated from the odin code defined in `inst/odin/seirdage.R`. We use data on the infection fatality risk (IFR) from [O'Driscoll et al (2020)](https://www.nature.com/articles/s41586-020-2918-0). We also define initial conditions for the model; if users require parameters for a known pathogen, these could potentially be sourced from the [`epiparameter` package](https://epiverse-trace.github.io/epiparameter/) using the `epidist_db` and `get_parameters` functions.
+Next, we define the model and its inputs. The model `seirdage` is a pre-compiled [`odin` model](https://mrc-ide.github.io/odin/) generated from the odin code defined in [inst/odin/seirdage.R](inst/odin/seirdage.R). We use data on the infection fatality risk (IFR) from [O'Driscoll et al (2020)](https://www.nature.com/articles/s41586-020-2918-0). We also define initial conditions for the model; if users require parameters for a known pathogen, these could potentially be sourced from the [`epiparameter` package](https://epiverse-trace.github.io/epiparameter/) using the `epidist_db` and `get_parameters` functions.
 
-With the model specified, we then simulate an epidemic forward over 1000 days and output age-stratified trajectories for the susceptible, exposed, infected, recovered, and cumulative deaths compartments.
+With the model specified, we then simulate an epidemic forward over 150 days and output age-stratified trajectories for the susceptible, exposed, infected, recovered, and cumulative deaths compartments.
 ```{r}
 # Get death probability
 IFR <- data.table::fread(system.file("extdata", "ifr_odriscoll.csv", package = "seir"))
@@ -138,7 +138,7 @@ compare <- function(state, observed, pars = NULL){
 }
 ```
 
-Next, we define a particle filter that propagates a set of particles of size `n_particles` over time, with each particle representing a single output from the model (`seirdage`). At each time step, the particle filter uses the comparison function (`compare`) and observed data (`seirdage`) to weight and resample the particles.
+Next, we define a particle filter that propagates a set of particles of size `n_particles` over time, with each particle representing a single output from the model (`seirdage`). At each time step, the particle filter uses the comparison function (`compare`) and observed data (`data`) to weight and resample the particles.
 ```{r}
 # Create particle filter
 # n_particles <- 500
