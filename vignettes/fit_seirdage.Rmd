@@ -65,9 +65,9 @@ n_steps <- 600 #1000
 
 # Create data to be fitted to
 # Create an array to contain outputs after looping the model.
-# Array contains 60 rows = Total S, E, I, R, D (5), and
-# in each age compartment (40), total incidence of new 
-# infectious cases and deaths (2) and in each age compartment 
+# Array contains 61 rows = time (1); total S, E, I, R, D (5); and
+# in each age compartment (40); total incidence of new 
+# infectious cases and deaths (2); and in each age compartment 
 # (8 + 5) (deaths <40 years of age are grouped together)
 x <- array(NA, dim = c(seird_age_model$info()$len, 1, n_steps+1))
 
