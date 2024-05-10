@@ -36,7 +36,7 @@ n_steps <- 400
 
 # Create data to be fitted to
 # Create an array to contain outputs after looping the model.
-# Array contains 5 rows = Total S, E, I, R (5)
+# Array contains 5 rows = time, S, E, I, R (5)
 x <- array(NA, dim = c(sir_model$info()$len, 1, n_steps+1))
 
 # For loop to run the model iteratively
@@ -117,15 +117,16 @@ plot_particle_filter(filter$history(), true_history, data_raw$day)
 
 ```{r}
 # Set up MCMC
-# beta <- pmcmc_parameter("beta", 0.2, min = 0)
-R0 <- mcstate::pmcmc_parameter("R0", 2, min = 0)
-gamma <- mcstate::pmcmc_parameter("gamma", 0.1, min = 0,
+beta <- mcstate::pmcmc_parameter("beta", 0.4, min = 0)
+# R0 <- mcstate::pmcmc_parameter("R0", 2, min = 0)
+gamma <- mcstate::pmcmc_parameter("gamma", 0.2, min = 0,
                          prior = function(p)
                              dgamma(p, shape = 1, scale = 0.2, log = TRUE))
 
 make_transform <- function(pars,dt,S_ini,I_ini){
     function(pars){
-        beta <- pars[["R0"]] * pars[["gamma"]]
+        beta <- pars[["beta"]]
+        # beta <- pars[["R0"]] * pars[["gamma"]]
         gamma <- pars[["gamma"]]
         list(beta = beta,gamma = gamma,dt = dt,S_ini = S_ini,I_ini = I_ini)
     }
@@ -134,14 +135,14 @@ make_transform <- function(pars,dt,S_ini,I_ini){
 transform <- make_transform(pars,dt,S_ini,I_ini)
 
 proposal_matrix <- matrix(c(0.01^2, 0, 0, 0.01^2), nrow = 2, ncol = 2, byrow = TRUE)
-# mcmc_pars <- pmcmc_parameters$new(list(beta = beta, gamma = gamma), proposal_matrix, transform = transform)
-mcmc_pars <- mcstate::pmcmc_parameters$new(list(R0 = R0, gamma = gamma), proposal_matrix, transform = transform)
+mcmc_pars <- mcstate::pmcmc_parameters$new(list(beta = beta, gamma = gamma), proposal_matrix, transform = transform)
+# mcmc_pars <- mcstate::pmcmc_parameters$new(list(R0 = R0, gamma = gamma), proposal_matrix, transform = transform)
 ```
 
 ```{r}
 # Run MCMC
 control <- mcstate::pmcmc_control(
-    500,
+    5000,
     save_state = TRUE,
     save_trajectories = TRUE,
     progress = TRUE)
@@ -172,15 +173,20 @@ coda::effectiveSize(mcmc1)
 ```{r}
 # Tune MCMC
 proposal_matrix <- cov(pmcmc_run$pars)
-# mcmc_pars <- pmcmc_parameters$new(list(beta = beta, gamma = gamma),
-#                                   proposal_matrix,transform = transform)
-mcmc_pars <- mcstate::pmcmc_parameters$new(list(R0 = R0, gamma = gamma),
+mcmc_pars <- mcstate::pmcmc_parameters$new(list(beta = beta, gamma = gamma),
                                   proposal_matrix,transform = transform)
+# mcmc_pars <- mcstate::pmcmc_parameters$new(list(R0 = R0, gamma = gamma),
+#                                   proposal_matrix,transform = transform)
 ```
 
 ```{r}
 # Run tuned MCMC
-pmcmc_tuned_run <- mcstate::pmcmc(mcmc_pars, filter, control = control)
+control_tuned_run <- mcstate::pmcmc_control(
+    1000,
+    save_state = TRUE,
+    save_trajectories = TRUE,
+    progress = TRUE)
+pmcmc_tuned_run <- mcstate::pmcmc(mcmc_pars, filter, control = control_tuned_run)
 ```
 
 ```{r}
