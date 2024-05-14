@@ -67,9 +67,7 @@ incidence <- sapply(incidence,max,0)
 
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence)
-data <- mcstate::particle_filter_data(data_raw,"day",1/dt)
-# data_raw <- data.frame(time = seq(1,n_steps*dt),cases = incidence)
-# data <- dust::dust_data(data_raw)
+data <- mcstate::particle_filter_data(data_raw,"day",1/dt,initial_time = 0)
 
 plot(data_raw$day,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
 # plot(data_raw$time,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
@@ -176,21 +174,21 @@ coda::effectiveSize(mcmc1)
 
 ```{r}
 # Tune MCMC
-proposal_matrix <- cov(pmcmc_run$pars)
+proposal_matrix_tuned <- cov(pmcmc_run$pars)
 mcmc_pars <- mcstate::pmcmc_parameters$new(list(beta = beta, gamma = gamma),
-                                  proposal_matrix,transform = transform)
+                                  proposal_matrix_tuned,transform = transform)
 # mcmc_pars <- mcstate::pmcmc_parameters$new(list(R0 = R0, gamma = gamma),
 #                                   proposal_matrix,transform = transform)
 ```
 
 ```{r}
 # Run tuned MCMC
-control_tuned_run <- mcstate::pmcmc_control(
+control_tuned <- mcstate::pmcmc_control(
     1000,
     save_state = TRUE,
     save_trajectories = TRUE,
     progress = TRUE)
-pmcmc_tuned_run <- mcstate::pmcmc(mcmc_pars, filter, control = control_tuned_run)
+pmcmc_tuned_run <- mcstate::pmcmc(mcmc_pars, filter, control = control_tuned)
 ```
 
 ```{r}
