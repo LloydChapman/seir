@@ -35,3 +35,7 @@ S_ini <- user(1000)
 I_ini <- user(10)
 beta <- user(0.2)
 gamma <- user(0.1)
+
+# In-line compare function
+cases <- data()
+compare(cases) ~ poisson(I_inc)

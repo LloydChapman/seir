@@ -115,7 +115,9 @@ class sir {
 public:
   using real_type = double;
   using rng_state_type = dust::random::generator<real_type>;
-  using data_type = dust::no_data;
+  struct __align__(16) data_type {
+    real_type cases;
+  };
   struct shared_type {
     real_type beta;
     real_type dt;
@@ -161,6 +163,11 @@ public:
     state_next[2] = I + n_SI - n_IR;
     state_next[4] = (fmodr<real_type>(step, shared->steps_per_day) == 0 ? n_SI : I_inc + n_SI);
     state_next[1] = S - n_SI;
+  }
+  real_type compare_data(const real_type * state, const data_type& data, rng_state_type& rng_state) {
+    const real_type I_inc = state[4];
+    const auto compare_cases = (std::isnan(data.cases)) ? 0 : dust::density::poisson(data.cases, I_inc, true);
+    return compare_cases;
   }
 private:
   std::shared_ptr<const shared_type> shared;
@@ -429,6 +436,13 @@ cpp11::sexp dust_info<sir>(const dust::pars_type<sir>& pars) {
            "dim"_nm = dim,
            "len"_nm = len,
            "index"_nm = index});
+}
+template <>
+sir::data_type dust_data<sir>(cpp11::list data) {
+  using real_type = sir::real_type;
+  return sir::data_type{
+      cpp11::as_cpp<real_type>(data["cases"])
+    };
 }
 }
 

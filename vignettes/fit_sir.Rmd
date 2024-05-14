@@ -68,21 +68,24 @@ incidence <- sapply(incidence,max,0)
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence)
 data <- mcstate::particle_filter_data(data_raw,"day",1/dt)
+# data_raw <- data.frame(time = seq(1,n_steps*dt),cases = incidence)
+# data <- dust::dust_data(data_raw)
 
 plot(data_raw$day,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
+# plot(data_raw$time,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
 ```
 
 ```{r}
-# Define comparison function
-compare <- function(state, observed, pars = NULL) {
-  exp_noise <- 1e6
-
-  incidence_modelled <- state[5, , drop = TRUE]
-  incidence_observed <- observed$cases
-  lambda <- incidence_modelled +
-    rexp(n = length(incidence_modelled), rate = exp_noise)
-  dpois(x = incidence_observed, lambda = lambda, log = TRUE)
-}
+# # Define comparison function
+# compare <- function(state, observed, pars = NULL) {
+#   exp_noise <- 1e6
+# 
+#   incidence_modelled <- state[5, , drop = TRUE]
+#   incidence_observed <- observed$cases
+#   lambda <- incidence_modelled +
+#     rexp(n = length(incidence_modelled), rate = exp_noise)
+#   dpois(x = incidence_observed, lambda = lambda, log = TRUE)
+# }
 ```
 
 ```{r}
@@ -90,7 +93,8 @@ compare <- function(state, observed, pars = NULL) {
 filter <- mcstate::particle_filter$new(data = data,
                               model = sir,
                               n_particles = 100,
-                              compare = compare,
+                              # compare = compare,
+                              compare = NULL,
                               seed = 1)
 
 filter$run(save_history = TRUE, pars = list(dt = dt))
