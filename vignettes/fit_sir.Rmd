@@ -70,7 +70,6 @@ data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence)
 data <- mcstate::particle_filter_data(data_raw,"day",1/dt,initial_time = 0)
 
 plot(data_raw$day,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
-# plot(data_raw$time,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
 ```
 
 ```{r}
@@ -114,7 +113,18 @@ plot_particle_filter <- function(history, true_history, times, obs_end = NULL) {
     legend("left", lwd = 1, col = cols, legend = names(cols), bty = "n")
 }
 
+plot_incidence <- function(incidence_modelled,incidence_observed,times){
+    matplot(times,t(incidence_modelled[5,,-1]),
+            type="l",col = scales::alpha("black",0.1),xlab = "Day",ylab = "Cases")
+    points(times,incidence_observed,pch=19,col="red")
+}
+
 plot_particle_filter(filter$history(), true_history, data_raw$day)
+```
+
+```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(filter$history(),incidence,data_raw$day)
 ```
 
 ```{r}
@@ -157,6 +167,11 @@ plot_particle_filter(pmcmc_run$trajectories$state, true_history, data_raw$day)
 ```
 
 ```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(pmcmc_run$trajectories$state[,4001:5000,],incidence,data_raw$day)
+```
+
+```{r}
 # Summarise and plot MCMC output
 # processed_chains <- pmcmc_thin(pmcmc_run, burnin = 200, thin = 2)
 # parameter_mean_hpd <- apply(processed_chains$pars, 2, mean)
@@ -194,6 +209,11 @@ pmcmc_tuned_run <- mcstate::pmcmc(mcmc_pars, filter, control = control_tuned)
 ```{r}
 # Plot fitted trajectories
 plot_particle_filter(pmcmc_tuned_run$trajectories$state, true_history, data_raw$day)
+```
+
+```{r}
+# Plot sampled incidence curves on top of data
+plot_incidence(pmcmc_tuned_run$trajectories$state,incidence,data_raw$day)
 ```
 
 ```{r}
