@@ -32,7 +32,7 @@ contact <- socialmixr::contact_matrix(survey = polymod,countries = "United Kingd
 # Transform the matrix to the (symmetrical) transmission matrix
 # rather than the contact matrix. This transmission matrix is
 # weighted by the population in each age band.
-transmission <- contact$matrix/rep(round(contact$demography$population/1e4), each = ncol(contact$matrix))
+transmission <- contact$matrix/rep(round(contact$demography$population), each = ncol(contact$matrix))
 transmission
 ```
 
@@ -51,7 +51,7 @@ p_death <- agg_IFR[,Median_perc_mean/100]
 # Generate model
 N_age <- length(age.limits)
 dt <- 0.25
-S_ini <- round(contact$demography$population/1e4)
+S_ini <- round(contact$demography$population)
 E_ini <- c(0,0,0,0,0,0,0,0)
 I_ini <- c(0,10,0,0,0,0,0,0)
 seird_age_model <- seirdage$new(
@@ -61,7 +61,7 @@ seird_age_model <- seirdage$new(
     time = 0,n_particles = 1,n_threads = 1,seed = 1)
 
 # Run epidemic forward
-n_steps <- 600 #1000
+n_steps <- 1000
 
 # Create data to be fitted to
 # Create an array to contain outputs after looping the model.
@@ -108,19 +108,21 @@ incidence <- true_history[6, ,-1]
 
 # Add noise
 set.seed(0)
-noise <- round(rnorm(n = length(true_history[6,1,-1]),mean = 0,
-                     sd = 0.2 * true_history[6,1,-1]))
-incidence <- incidence + noise
-incidence <- sapply(incidence,max,0)
+# noise <- round(rnorm(n = length(true_history[6,1,-1]),mean = 0,
+#                      sd = 0.4 * true_history[6,1,-1]))
+# incidence <- incidence + noise
+# incidence <- sapply(incidence,max,0)
 # incidence <- rpois(length(incidence),incidence)
+incidence <- rnbinom(length(incidence),size = 10,mu = incidence)
 
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),incidence = incidence)
 data <- mcstate::particle_filter_data(data_raw,"day",1/dt,initial_time = 0)
 
 plot(data_raw$day,data_raw$incidence,type = "l",xlab = "Day",ylab = "Cases")
+lines(data_raw$day,true_history[6,,-1],col = "red")
 ```
-We then define a function to allow us to compare a model output (`state`) with observed data (`observed`) using a Poisson observation model:
+We then define a function to allow us to compare a model output (`state`) with observed data (`observed`) using a negative binomial observation model:
 ```{r}
 # Define comparison function
 compare <- function(state, observed, pars = NULL){
@@ -129,10 +131,17 @@ compare <- function(state, observed, pars = NULL){
     } else {
         exp_noise <- pars$exp_noise
     }
+    if (is.null(pars$kappa)) {
+        kappa <- 2
+    } else {
+        kappa <- pars$kappa
+    }
     incidence_modelled <- state[7,]
     incidence_observed <- observed$incidence
-    lambda <- incidence_modelled + rexp(length(incidence_modelled), exp_noise) # add small amount of noise to prevent 0 expectations
-    dpois(incidence_observed, lambda, log = TRUE) # Poisson log-likelihood
+    # lambda <- incidence_modelled + rexp(length(incidence_modelled), exp_noise) # add small amount of noise to prevent 0 expectations
+    # dpois(incidence_observed, lambda, log = TRUE) # Poisson log-likelihood
+    mu <- incidence_modelled + rexp(length(incidence_modelled), exp_noise)
+    dnbinom(incidence_observed, kappa, mu = mu, log = TRUE) # Negative binomial log-likelihood
 }
 ```
 
@@ -143,7 +152,8 @@ filter_deterministic <- mcstate::particle_deterministic$new(data, seirdage, comp
 filter_deterministic$run(save_history = TRUE,
            pars = list(dt = dt,S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,
                        beta = 0.03,sigma = 0.5,gamma = 0.1,
-                       m = transmission,p_death = p_death,N_age = N_age))
+                       m = transmission,p_death = p_death,N_age = N_age,
+                       kappa = 10))
 
 matplot1 <- function(x,y,...){
   if (is.matrix(y)){
@@ -263,7 +273,7 @@ coda::effectiveSize(mcmc_out)
 ```
 
 ```{r}
-n_particles <- 100
+n_particles <- 200
 filter <- mcstate::particle_filter$new(data, seirdage, n_particles, compare)
 
 # Tune pMCMC
@@ -294,7 +304,7 @@ plot_particle_filter(pmcmc_run1$trajectories$state[,101:1000,], true_history, da
 
 ```{r}
 # Plot sampled incidence curves on top of data
-plot_incidence(pmcmc_run1$trajectories$state[,101:1000,1:100],incidence[2:100],data_raw$day[2:100])
+plot_incidence(pmcmc_run1$trajectories$state[,101:1000,],incidence,data_raw$day)
 ```
 
 ```{r, fig.height = 10}
