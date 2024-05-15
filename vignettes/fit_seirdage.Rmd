@@ -108,17 +108,13 @@ incidence <- true_history[6, ,-1]
 
 # Add noise
 set.seed(0)
-# noise <- round(rnorm(n = length(true_history[6,1,-1]),mean = 0,
-#                      sd = 0.4 * true_history[6,1,-1]))
-# incidence <- incidence + noise
-# incidence <- sapply(incidence,max,0)
-# incidence <- rpois(length(incidence),incidence)
 incidence <- rnbinom(length(incidence),size = 10,mu = incidence)
 
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),incidence = incidence)
 data <- mcstate::particle_filter_data(data_raw,"day",1/dt,initial_time = 0)
 
+# Plot simulated noisy incidence data
 plot(data_raw$day,data_raw$incidence,type = "l",xlab = "Day",ylab = "Cases")
 lines(data_raw$day,true_history[6,,-1],col = "red")
 ```
@@ -138,8 +134,6 @@ compare <- function(state, observed, pars = NULL){
     }
     incidence_modelled <- state[7,]
     incidence_observed <- observed$incidence
-    # lambda <- incidence_modelled + rexp(length(incidence_modelled), exp_noise) # add small amount of noise to prevent 0 expectations
-    # dpois(incidence_observed, lambda, log = TRUE) # Poisson log-likelihood
     mu <- incidence_modelled + rexp(length(incidence_modelled), exp_noise)
     dnbinom(incidence_observed, kappa, mu = mu, log = TRUE) # Negative binomial log-likelihood
 }
