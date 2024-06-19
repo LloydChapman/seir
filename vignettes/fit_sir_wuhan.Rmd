@@ -58,12 +58,12 @@ Next, we define the particle filter that propagates a set of particles of size `
 
 We assume a fully susceptible population initially, and 10 infectious individuals on the first day of the analysis (i.e. 30th Dec 2019).
 
-**Note: need to check inputs are defined properly here**
+**Note: need to check inputs are defined properly in the model/particle filter object here**
 ```{r}
 # Define initial conditions
 dt <- 1
 S_ini <- 19e6
-I_ini <- 10
+I_ini <- 1
 
 # Create particle filter
 filter <- mcstate::particle_filter$new(data = data,
@@ -72,8 +72,8 @@ filter <- mcstate::particle_filter$new(data = data,
                               compare = compare,
                               seed = 1)
 
-filter$run(save_history = TRUE, pars = list(dt = dt))
-#S_ini = S_ini,E_ini = E_ini,I_ini = I_ini,beta = 0.03,sigma = 0.5,gamma = 0.1))
+filter$run(save_history = TRUE, pars = list(dt = dt,S_ini = S_ini,I_ini = I_ini))
+#S_ini = S_ini,I_ini = I_ini,beta = 0.03,sigma = 0.5,gamma = 0.1))
 
 plot_particle_filter <- function(history, true_history, times, obs_end = NULL) {
     if (is.null(obs_end)) {
@@ -140,6 +140,6 @@ summary(mcmc1)
 Finally, we estimate the number of infections as of 26th Jan 2020:
 
 ```{r}
-output_infections <- pmcmc_tuned_run$trajectories$state[3,,length(data_raw$day)]
+output_infections <- pmcmc_run$trajectories$state[3,,length(data_raw$day)]
 quantile(output_infections,c(0.025,0.5,0.975))
 ```
