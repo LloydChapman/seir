@@ -32,6 +32,7 @@ international_onset_data_in$date <- as.Date(international_onset_data_in$date)
 incidence <- international_onset_data_in$number
 
 n_steps <- length(incidence)
+dt <- 1
 
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence)
