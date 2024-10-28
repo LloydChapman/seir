@@ -36,7 +36,7 @@ dt <- 1
 
 # Convert to required format
 data_raw <- data.frame(day = seq(1,n_steps*dt),cases = incidence)
-data <- mcstate::particle_filter_data(data_raw,"day",1/dt)
+data_in <- mcstate::particle_filter_data(data_raw,"day",1/dt)
 
 plot(data_raw$day,data_raw$cases,type = "l",xlab = "Day",ylab = "Cases")
 ```
@@ -67,7 +67,7 @@ S_ini <- 19e6
 I_ini <- 1
 
 # Create particle filter
-filter <- mcstate::particle_filter$new(data = data,
+filter <- mcstate::particle_filter$new(data = data_in,
                               model = sir,
                               n_particles = 100,
                               compare = compare,
